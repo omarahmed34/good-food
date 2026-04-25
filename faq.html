@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BiteSight | تواصل معنا</title>
+  <title>BiteSight | الأسئلة الشائعة</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -17,75 +17,72 @@
     }
   </script>
   <style>
-    .contact-premium-card {
-      background: var(--bg-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 30px;
-      padding: 3rem;
-      max-width: 800px;
+    .faq-premium-list {
+      max-width: 900px;
       margin: 0 auto 5rem;
-      box-shadow: var(--shadow-xl);
     }
 
-    [data-theme="light"] .contact-premium-card {
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .contact-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    .full-row {
-      grid-column: span 2;
-    }
-
-    .contact-form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .contact-form-group label {
-      font-weight: 700;
-      color: var(--text-main);
-      font-size: 0.95rem;
-    }
-
-    .contact-form-group input, 
-    .contact-form-group textarea {
-      background: var(--glass);
+    .faq-premium-item {
+      background: var(--bg-surface);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
       border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
-      font-family: inherit;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
       transition: var(--transition);
     }
 
-    .contact-form-group input:focus,
-    .contact-form-group textarea:focus {
-      border-color: var(--primary);
-      background: rgba(255, 90, 0, 0.03);
-      outline: none;
+    [data-theme="light"] .faq-premium-item {
+      background: rgba(255, 255, 255, 0.8);
     }
 
-    .location-input-wrap {
+    .faq-question-wrap {
+      padding: 1.8rem 2.2rem;
+      cursor: pointer;
       display: flex;
-      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text-main);
     }
 
-    .location-input-wrap input {
-      flex: 1;
+    .faq-question-wrap:hover {
+      background: rgba(255, 90, 0, 0.03);
     }
 
-    @media (max-width: 768px) {
-      .contact-form-grid { grid-template-columns: 1fr; }
-      .full-row { grid-column: span 1; }
-      .contact-premium-card { padding: 1.5rem; }
+    .faq-answer-wrap {
+      padding: 0 2.2rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.4s var(--bounce);
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .faq-premium-item.active {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .faq-premium-item.active .faq-answer-wrap {
+      padding: 0 2.2rem 1.8rem;
+      max-height: 500px;
+    }
+
+    .faq-premium-item.active .faq-question-wrap {
+      color: var(--primary);
+    }
+
+    .faq-arrow {
+      font-size: 0.8rem;
+      transition: transform 0.3s;
+    }
+
+    .faq-premium-item.active .faq-arrow {
+      transform: rotate(180deg);
     }
   </style>
 </head>
@@ -128,38 +125,13 @@
       <div class="cinematic-container">
         <div class="cinematic-orb"></div>
         <div class="cinematic-header">
-          <span class="sub-line" data-i18n="contact.badge">تواصل مباشر</span>
-          <h2 class="main-line highlight" data-i18n="contact.h3">يسعدنا سماع رأيك واقتراحاتك</h2>
+          <span class="sub-line" data-i18n="faq.subtitle">مركز المساعدة</span>
+          <h2 class="main-line highlight" data-i18n="nav.faq">الأسئلة الشائعة</h2>
         </div>
       </div>
 
-      <div class="contact-premium-card">
-        <form id="contactForm" class="contact-form-grid">
-          <div class="contact-form-group">
-            <label data-i18n="contact.name">الاسم</label>
-            <input type="text" id="contactName" placeholder="الاسم الكامل" required>
-          </div>
-          <div class="contact-form-group">
-            <label data-i18n="contact.email">البريد</label>
-            <input type="email" id="contactEmail" placeholder="example@mail.com" required>
-          </div>
-          
-          <div class="contact-form-group full-row">
-            <label>الموقع الجغرافي (اختياري)</label>
-            <div class="location-input-wrap">
-              <input type="text" id="contactLocation" placeholder="رابط جوجل ماب أو اكتبي وصف الموقع">
-              <button type="button" onclick="detectLocation()" class="btn btn-secondary" style="white-space: nowrap;">📍 تحديد آلي</button>
-            </div>
-          </div>
-
-          <div class="contact-form-group full-row">
-            <label data-i18n="contact.msg">الرسالة</label>
-            <textarea id="contactMsg" rows="5" placeholder="اكتبي رسالتك هنا..." required></textarea>
-          </div>
-          <div class="full-row" style="margin-top: 1rem;">
-            <button type="submit" class="btn btn-primary full-btn" data-i18n="contact.send" style="padding: 1.2rem; font-size: 1.1rem;">إرسال الرسالة</button>
-          </div>
-        </form>
+      <div id="faqList" class="faq-premium-list">
+        <!-- JS will render -->
       </div>
     </main>
 
@@ -217,18 +189,34 @@
 
   <script src="script.js?v=v35"></script>
   <script>
-    function detectLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const link = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
-          document.getElementById('contactLocation').value = link;
-          showNotification('تم تحديد موقعك بنجاح ✅', 'success');
-        }, () => {
-          showNotification('تعذر تحديد الموقع، يرجى كتابته يدوياً.', 'error');
-        });
-      }
+    let faqsData = [];
+    
+    function renderFaqs() {
+      const list = document.getElementById('faqList');
+      const lang = getCurrentLang();
+
+      list.innerHTML = faqsData.map(f => `
+        <div class="faq-premium-item">
+          <div class="faq-question-wrap" onclick="this.parentElement.classList.toggle('active')">
+            <span>${lang === 'ar' ? f.question_ar : f.question_en}</span>
+            <span class="faq-arrow">▼</span>
+          </div>
+          <div class="faq-answer-wrap">
+            <p>${lang === 'ar' ? f.answer_ar : f.answer_en}</p>
+          </div>
+        </div>
+      `).join('');
     }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      applyLanguage(getCurrentLang());
+      
+      const res = await fetch('api.php?action=get_faqs');
+      faqsData = await res.json();
+      renderFaqs();
+      
+      document.addEventListener('languageChanged', renderFaqs);
+    });
   </script>
 </body>
-
 </html>

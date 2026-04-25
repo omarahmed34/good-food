@@ -1,61 +1,61 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BiteSight | تسجيل الدخول</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=p6" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiteSight | دخول</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=v21" /><link rel="stylesheet" href="auth.css?v=v21">
+    <script>
+        // Critical: Apply theme before body renders
+        if (localStorage.getItem("theme") === "light") {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    </script>
 </head>
-
 <body class="auth-page">
-  <div class="page-shell">
-    <main>
-      <div class="auth-container">
+    <div class="auth-theme-toggle">
+        <button id="themeToggle" class="theme-btn-float">☀️</button>
+    </div>
+    <div class="auth-container">
         <div class="auth-card">
-          <div class="brand-header">
-            <div class="brand-logo">🍽️</div>
-            <h1 class="brand-name">Bite<span>Sight</span></h1>
-          </div>
-
-          <form class="auth-form" id="loginForm">
-            <div class="form-group">
-              <label for="email" data-i18n="login.email">البريد الإلكتروني</label>
-              <div class="input-wrapper">
-                <input type="email" id="email" data-i18n="placeholder.email" placeholder="example@mail.com" required>
-              </div>
+            <div class="brand-header">
+                <div class="brand-logo">🍽️</div>
+                <h1 class="brand-name">Bite<span>Sight</span></h1>
             </div>
 
-            <div class="form-group">
-              <div class="form-group-header">
-                <label for="password" data-i18n="login.password">كلمة المرور</label>
-                <a href="#" class="small-link" data-i18n="login.forgot">نسيتي كلمة المرور؟</a>
-              </div>
-              <div class="input-wrapper">
-                <input type="password" id="password" data-i18n="placeholder.password" placeholder="••••••••" required>
-              </div>
-            </div>
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" placeholder="example@mail.com" required>
+                    </div>
+                </div>
 
-            <div class="auth-actions">
-              <button type="submit" class="btn btn-primary auth-btn" data-i18n="login.btn">دخول</button>
-            </div>
-          </form>
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="password">كلمة المرور</label>
+                        <a href="forgot-password.html" class="small-link">نسيتِ كلمة المرور؟</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+                    </div>
+                </div>
 
-          <div class="auth-footer">
-            <span data-i18n="login.noacc">ماعندكيش حساب؟</span>
-            <a href="signup.html" data-i18n="login.signup">اشتركي الآن</a>
-          </div>
+                <button type="submit" class="auth-btn">تسجيل الدخول</button>
+            </form>
+
+            <div class="auth-footer">
+                <span>ليس لديكِ حساب؟</span>
+                <a href="signup.html">اشتركي الآن</a>
+            </div>
         </div>
-      </div>
-    </main>
-  </div>
+    </div>
 
-  <script src="script.js?v=p6"></script>
+    <script src="script.js?v=v20"></script>
+    <script src="auth.js?v=v20"></script>
 </body>
-
 </html>

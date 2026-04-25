@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head><meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | قائمة التسوق</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v20" />
+  <script>
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  </script>
+  <style>
+    .shopping-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .shopping-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .shopping-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 25px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      transition: all 0.3s var(--trans-smooth);
+      animation: fadeInItem 0.5s ease both;
+    }
+    @keyframes fadeInItem {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .shopping-item:hover {
+      border-color: var(--primary);
+      transform: scale(1.02);
+      box-shadow: var(--shadow-xl);
+    }
+    .item-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .item-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--primary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s;
+    }
+    .item-check.checked {
+      background: var(--primary);
+    }
+    .item-check.checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: 14px;
+    }
+    .item-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .item-text.checked {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .delete-item {
+      background: none;
+      border: none;
+      color: #ff4d4d;
+      font-size: 20px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .delete-item:hover {
+      opacity: 1;
+    }
+    .clear-list-btn {
+      margin-top: 40px;
+      background: rgba(255, 77, 77, 0.1);
+      border: 1px solid #ff4d4d;
+      color: #ff4d4d;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    .clear-list-btn:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+    .empty-shopping {
+      text-align: center;
+      padding: 60px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-xl);
+      border: 1px dashed var(--glass-border);
+    }
+    .empty-shopping-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
+
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
+          </div>
+        </div>
+        <button id="themeToggle" title="تبديل الوضع">☀️</button>
+        <button id="langToggle" title="Switch Language">
+          <span class="lang-icon">🌐</span>
+          <span class="lang-label">EN</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="shopping-container section">
+      <div class="section-head text-center">
+        <span data-i18n="shop.subtitle">الخدمة الذكية</span>
+        <h3 data-i18n="shop.h3">قائمة مشترياتك</h3>
+        <p data-i18n="shop.desc">هنا تجدين كل المكونات التي قمتِ بإضافتها لتكملي وصفاتك اللذيذة.</p>
+      </div>
+
+      <div id="shoppingListContent" class="shopping-list">
+        <!-- JS will populate -->
+         <div class="loading-state" data-i18n="shop.loading">جاري تحميل القائمة...</div>
+      </div>
+
+      <div id="clearAction" style="display:none; text-align: center;">
+        <button class="clear-list-btn" onclick="clearFullList()" data-i18n="shop.clear">مسح كل القائمة</button>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="script.js?v=v11_fixed"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      loadShoppingList();
+    });
+
+    async function loadShoppingList() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const listContainer = document.getElementById('shoppingListContent');
+      const clearAction = document.getElementById('clearAction');
+
+      try {
+        const res = await fetch(`api.php?action=get_shopping_list&user_id=${user.id}`);
+        const data = await res.json();
+
+        if (data.length === 0) {
+          const lang = getCurrentLang();
+          const t = translations[lang];
+          listContainer.innerHTML = `
+            <div class="empty-shopping">
+              <span class="empty-shopping-icon">🛒</span>
+              <h3>${t['shop.empty']}</h3>
+              <p>${t['shop.empty_desc']}</p>
+              <a href="recipes.html" class="btn btn-primary" style="margin-top:20px; display:inline-block;">${t['shop.browse']}</a>
+            </div>
+          `;
+          clearAction.style.display = 'none';
+        } else {
+          listContainer.innerHTML = data.map(item => `
+            <div class="shopping-item" id="item-${item.id}">
+              <div class="item-info">
+                <div class="item-check" onclick="toggleItemCheck(this)"></div>
+                <span class="item-text">${item.ingredient_name}</span>
+              </div>
+              <button class="delete-item" onclick="deleteShoppingItem(${item.id})" title="حذف">🗑️</button>
+            </div>
+          `).join('');
+          clearAction.style.display = 'block';
+        }
+      } catch (err) {
+        listContainer.innerHTML = '<p class="error">حدث خطأ أثناء تحميل القائمة.</p>';
+      }
+    }
+
+    function toggleItemCheck(el) {
+      el.classList.toggle('checked');
+      el.nextElementSibling.classList.toggle('checked');
+    }
+
+    async function deleteShoppingItem(id) {
+      if(!confirm("هل تريدين حذف هذا المكون؟")) return;
+      try {
+        const res = await fetch('api.php?action=remove_from_shopping_list', {
+          method: 'POST',
+          body: JSON.stringify({ id })
+        });
+        const result = await res.json();
+        if(result.success) {
+          loadShoppingList();
+        }
+      } catch(err) {}
+    }
+
+    async function clearFullList() {
+      if(!confirm("هل أنتِ متأكدة من مسح القائمة بالكامل؟")) return;
+      const user = JSON.parse(localStorage.getItem('user'));
+      try {
+        const res = await fetch(`api.php?action=clear_shopping_list&user_id=${user.id}`);
+        const result = await res.json();
+        if(result.success) {
+          loadShoppingList();
+        }
+      } catch(err) {}
+    }
+  </script>
+</body>
+</html>

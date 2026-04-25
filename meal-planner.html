@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head><meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | الرئيسية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v11_fixed" />
+  <style>
+    .planner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 40px;
+    }
+    .day-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 25px;
+      transition: all 0.4s var(--trans-smooth);
+    }
+    .day-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+    }
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 15px;
+    }
+    .day-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .meal-slot {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-md);
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+    .meal-type-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .meal-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+    .meal-name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .empty-slot {
+      border: 1px dashed var(--glass-border);
+      color: var(--text-muted);
+      justify-content: center;
+      cursor: pointer;
+    }
+    .empty-slot:hover {
+      background: rgba(255, 107, 38, 0.05);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .remove-meal {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: none;
+      border: none;
+      color: #ff4d4d;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .meal-slot:hover .remove-meal {
+      opacity: 1;
+    }
+
+    /* Modal for adding recipe to plan */
+    .planner-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      place-items: center;
+      backdrop-filter: blur(10px);
+    }
+    .modal-content {
+      background: var(--bg-surface);
+      width: 90%;
+      max-width: 500px;
+      padding: 40px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--glass-border);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
+
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
+          </div>
+        </div>
+        <button id="themeToggle" title="تبديل الوضع">☀️</button>
+        <button id="langToggle" title="Switch Language">
+          <span class="lang-icon">🌐</span>
+          <span class="lang-label">EN</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="section-head text-center">
+        <span>خطتي الأسبوعية</span>
+        <h3>مخطط الوجبات الذكي</h3>
+        <p>اختاري الوصفات التي تريدين طبخها ووزعيها على أيام الأسبوع لراحة بال تامة.</p>
+      </div>
+
+      <div id="plannerGrid" class="planner-grid">
+        <!-- JS will render days -->
+      </div>
+    </main>
+
+    <!-- Simple Add Modal -->
+    <div id="addMealModal" class="planner-modal">
+        <div class="modal-content">
+            <h3 id="modalDayTitle">إضافة وجبة</h3>
+            <div class="form-group" style="margin: 20px 0;">
+                <label>اختر الوصفة من مفضلتك</label>
+                <select id="recipeSelect" class="input-wrapper" style="background:#111; padding:15px; width:100%; color:#fff; border-radius:10px;">
+                    <!-- JS will fill from favorites -->
+                </select>
+            </div>
+            <div class="form-group" style="margin: 20px 0;">
+                <label>نوع الوجبة</label>
+                <select id="typeSelect" class="input-wrapper" style="background:#111; padding:15px; width:100%; color:#fff; border-radius:10px;">
+                    <option value="Breakfast">إفطار</option>
+                    <option value="Lunch">غداء</option>
+                    <option value="Dinner">عشاء</option>
+                    <option value="Snack">سناك</option>
+                </select>
+            </div>
+            <div style="display: flex; gap:10px; margin-top:30px;">
+                <button class="btn btn-primary" onclick="confirmAddMeal()">إضافة للجدول</button>
+                <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=v11_fixed"></script>
+  <script>
+    const daysAr = {
+      'Saturday': 'السبت',
+      'Sunday': 'الأحد',
+      'Monday': 'الاثنين',
+      'Tuesday': 'الثلاثاء',
+      'Wednesday': 'الأربعاء',
+      'Thursday': 'الخميس',
+      'Friday': 'الجمعة'
+    };
+
+    let selectedDay = '';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderPlanner();
+    });
+
+    async function renderPlanner() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) { window.location.href = 'index.html'; return; }
+
+      const grid = document.getElementById('plannerGrid');
+      grid.innerHTML = '<div class="loading-state">جاري تحميل خطتك...</div>';
+
+      try {
+        const resCount = await fetch(`api.php?action=get_meal_plan&user_id=${user.id}`);
+        const plan = await resCount.json();
+
+        grid.innerHTML = '';
+        Object.keys(daysAr).forEach(day => {
+          const dayMeals = plan.filter(p => p.day_of_week === day);
+          
+          const card = document.createElement('div');
+          card.className = 'day-card';
+          
+          let mealsHtml = dayMeals.map(m => `
+            <div class="meal-slot">
+              <img src="${m.recipe_image}" class="meal-img" />
+              <div>
+                <div class="meal-type-label">${m.meal_type}</div>
+                <div class="meal-name">${m.recipe_name}</div>
+              </div>
+              <button class="remove-meal" onclick="removeMeal(${m.id})">🗑️</button>
+            </div>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="day-header">
+              <span class="day-name">${daysAr[day]}</span>
+              <span class="subtle">${dayMeals.length} وجبات</span>
+            </div>
+            <div class="day-content">
+              ${mealsHtml}
+              <div class="meal-slot empty-slot" onclick="openModal('${day}')">
+                <span>+ إضافة وجبة</span>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        grid.innerHTML = '<p>حدث خطأ في التحميل.</p>';
+      }
+    }
+
+    async function openModal(day) {
+      selectedDay = day;
+      const user = JSON.parse(localStorage.getItem('user'));
+      document.getElementById('modalDayTitle').textContent = `إضافة لوجبات يوم ${daysAr[day]}`;
+      
+      // Load favorites to select from
+      const sel = document.getElementById('recipeSelect');
+      sel.innerHTML = '<option>جاري التحميل...</option>';
+      
+      const res = await fetch(`api.php?action=get_user_favorites&user_id=${user.id}`);
+      const favIds = await res.json();
+      
+      // We need to fetch all recipes to match names, but since they are in script.js memory...
+      // For now we'll assume global 'recipes' is available from script.js
+      if (typeof recipes !== 'undefined' && recipes.length) {
+          const favs = recipes.filter(r => favIds.includes(r.id));
+          if (favs.length === 0) {
+              sel.innerHTML = '<option disabled>لا يوجد وصفات بمفضلتك</option>';
+          } else {
+              sel.innerHTML = favs.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+          }
+      }
+
+      document.getElementById('addMealModal').style.display = 'grid';
+    }
+
+    function closeModal() {
+      document.getElementById('addMealModal').style.display = 'none';
+    }
+
+    async function confirmAddMeal() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const recipeId = document.getElementById('recipeSelect').value;
+      const mealType = document.getElementById('typeSelect').value;
+
+      if(!recipeId) return;
+
+      const res = await fetch('api.php?action=add_to_meal_plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          recipe_id: recipeId,
+          day: selectedDay,
+          meal_type: mealType
+        })
+      });
+
+      const result = await res.json();
+      if(result.success) {
+        closeModal();
+        renderPlanner();
+        showNotification("تمت الإضافة للمخطط", 'success');
+      }
+    }
+
+    async function removeMeal(id) {
+       if(!confirm("حذف هذه الوجبة؟")) return;
+       const res = await fetch('api.php?action=remove_from_meal_plan', {
+         method: 'POST',
+         body: JSON.stringify({ id })
+       });
+       if((await res.json()).success) {
+         renderPlanner();
+       }
+    }
+  </script>
+</body>
+</html>

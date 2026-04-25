@@ -15,7 +15,7 @@ async function loadData() {
     // Fetch dynamic site content (About page, etc.)
     const siteRes = await fetch('api.php?action=get_site_content');
     const siteContent = await siteRes.json();
-
+    
     // Merge dynamic content into translations
     if (siteContent && !siteContent.error) {
       if (siteContent.ar) {
@@ -26,7 +26,7 @@ async function loadData() {
       }
       // Re-apply language to show new content
       applyLanguage(getCurrentLang());
-
+      
       // Sync favorites if logged in
       await syncFavorites();
     }
@@ -59,13 +59,22 @@ function setFavorites(data) {
 /* ============================================================
    RENDER: INGREDIENTS (Fridge page)
    ============================================================ */
-function renderIngredients() {
+function renderIngredients(query = "") {
   const grid = document.getElementById("ingredientGrid");
   const selectedBox = document.getElementById("selectedIngredients");
   if (!grid || !selectedBox) return;
 
+  grid.innerHTML = ""; // Clear for search
   let selected = getSelectedIngredients();
   const lang = getCurrentLang();
+  
+  const filteredIngredients = ingredients.filter(item => 
+    item.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  if (filteredIngredients.length === 0) {
+     grid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">${lang === 'ar' ? 'لم يتم العثور على مكونات.' : 'No ingredients found.'}</div>`;
+  }
 
   function refreshSelected() {
     selectedBox.innerHTML = "";
@@ -87,7 +96,7 @@ function renderIngredients() {
     });
   }
 
-  ingredients.forEach(item => {
+  filteredIngredients.forEach(item => {
     const div = document.createElement("div");
     div.className = "ingredient-item";
     if (selected.includes(item.id)) div.classList.add("active");
@@ -125,21 +134,33 @@ function renderIngredients() {
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
       setSelectedIngredients([]);
-      window.location.reload();
+      // Instead of just reload, provide feedback and update UI
+      showNotification(lang === 'ar' ? "تم مسح الاختيارات" : "Selections cleared", 'success');
+      setTimeout(() => window.location.reload(), 500);
     });
   }
+  init3DTilt();
 }
 
 /* ============================================================
    RENDER: RECIPES
    ============================================================ */
-function renderRecipes() {
+function renderRecipes(query = "") {
   const grid = document.getElementById("recipesGrid");
   const matchedBox = document.getElementById("matchedIngredientsBox");
   if (!grid) return;
 
   const lang = getCurrentLang();
   const selected = getSelectedIngredients();
+  
+  let filtered = recipes;
+
+  if (query) {
+    filtered = filtered.filter(r => 
+        r.title.toLowerCase().includes(query.toLowerCase()) || 
+        r.description.toLowerCase().includes(query.toLowerCase())
+    );
+  }
 
   const t = translations[lang];
   if (matchedBox) {
@@ -201,6 +222,7 @@ function renderRecipes() {
       </div>
     </article>
   `}).join("");
+  init3DTilt();
 }
 
 function goToDetails(id) {
@@ -236,7 +258,7 @@ function renderRecipeDetails() {
     const item = ingredients.find(i => i.id === ingId);
     const hasIt = selectedIds.includes(ingId);
     if (hasIt) matchCount++;
-
+    
     return {
       name: item ? `${item.emoji} ${item.name}` : ingId,
       status: hasIt ? 'available' : 'missing'
@@ -255,74 +277,77 @@ function renderRecipeDetails() {
              <span class="match-text">${translations[lang]['details.match_score']}</span>
           </div>
         </div>
-
+        
         <div class="recipe-detail-content">
           <div class="recipe-title-header">
              <h2>${recipe.title}</h2>
              <button class="fav-icon-btn ${getFavorites().includes(recipe.id) ? 'active' : ''}" onclick="saveFavorite('${recipe.id}')">
                ${getFavorites().includes(recipe.id) ? '❤️' : '🤍'}
-             </button>
-          </div>
+          </button>
+        </div>
           
           <p class="recipe-desc">${recipe.description}</p>
-          
-          <div class="meta-row">
-            <span class="meta-item"><i>🕒</i> ${recipe.time}</span>
-            <span class="meta-item"><i>📊</i> ${recipe.level}</span>
-            <span class="meta-item"><i>👥</i> ${recipe.serves}</span>
+        
+        <div class="prc-detail-meta">
+          <div class="prc-meta-item"><span class="prc-icon">🕒</span> ${recipe.time}</div>
+          <div class="prc-meta-item"><span class="prc-icon">📊</span> ${recipe.level}</div>
+          <div class="prc-meta-item"><span class="prc-icon">👥</span> ${recipe.serves}</div>
+        </div>
+
+        <div class="prc-detail-grid">
+          <div class="prc-detail-section">
+            <h4 class="prc-section-title"><span class="prc-badge-dot"></span> ${translations[lang]['details.ing_title']}</h4>
+            <ul class="prc-ingredient-list">
+              ${ingredientList.map(item => `
+                  <li class="prc-ing-item ${item.status}">
+                    <div class="prc-ing-info">
+                      <span class="prc-status-icon">${item.status === 'available' ? '✅' : '❌'}</span>
+                      <span class="prc-ing-name">${item.name}</span>
+                    </div>
+                    <div class="prc-ing-actions">
+                      <span class="prc-status-label">${item.status === 'available' ? translations[lang]['details.have_it'] : translations[lang]['details.missing']}</span>
+                      ${item.status === 'missing' ? `<button class="prc-btn prc-btn-outline" style="padding: 0.3rem 0.6rem; font-size:0.8rem;" onclick="addToShoppingList('${item.name}', '${recipe.id}')">➕</button>` : ''}
+                    </div>
+                  </li>
+              `).join("")}
+            </ul>
           </div>
 
-          <div class="detail-sections-grid">
-            <div class="detail-section">
-              <h4 class="section-title">
-                <span class="dot"></span>
-                ${translations[lang]['details.ing_title']}
-              </h4>
-              <ul class="ingredient-status-list">
-                ${ingredientList.map(item => `
-                    <li class="status-item ${item.status}">
-                      <span class="status-indicator">${item.status === 'available' ? '✅' : '❌'}</span>
-                      <span class="item-name">${item.name}</span>
-                      <span class="status-label">${item.status === 'available' ? translations[lang]['details.have_it'] : translations[lang]['details.missing']}</span>
-                      ${item.status === 'missing' ? `<button class="add-to-list-btn" onclick="addToShoppingList('${item.name}', '${recipe.id}')" title="${translations[lang]['details.add_shop']}">➕</button>` : ''}
-                    </li>
-                `).join("")}
-              </ul>
-            </div>
-
-            <div class="detail-section">
-              <h4 class="section-title">
-                <span class="dot"></span>
-                ${lang === 'ar' ? 'خطوات التحضير' : 'Preparation Steps'}
-              </h4>
-              <ol class="prep-steps-list">
-                ${recipe.steps.map(step => `<li>${step}</li>`).join("")}
-              </ol>
+          <div class="prc-detail-section">
+            <h4 class="prc-section-title"><span class="prc-badge-dot"></span> ${lang === 'ar' ? 'خطوات التحضير' : 'Preparation Steps'}</h4>
+            <div class="prc-steps-list">
+              ${recipe.steps.map((step, index) => `
+                <div class="prc-step-item">
+                  <div class="prc-step-number">${index + 1}</div>
+                  <div class="prc-step-text">${step}</div>
+                </div>
+              `).join("")}
             </div>
           </div>
+        </div>
 
-          <div class="detail-footer-actions" style="display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap;">
-            <div style="display: flex; gap: 10px;">
-              <button class="btn btn-secondary" onclick="window.history.back()">
-                ${translations[lang]['details.back']}
-              </button>
-              <button class="btn btn-primary" onclick="goToOrder('${recipe.id}')">
-                <span style="font-size: 18px;">🛒</span> ${translations[lang]['details.order_btn']}
-              </button>
-            </div>
-            <div style="display: flex; gap: 10px;">
-              <button class="secondary-action-btn" onclick="shareRecipe('${recipe.title}')">
-                 <span style="font-size: 18px;">🔗</span> ${translations[lang]['details.share']}
-              </button>
-              <button class="secondary-action-btn" onclick="printRecipe()">
-                 <span style="font-size: 18px;">🖨️</span> ${translations[lang]['details.print']}
-              </button>
-            </div>
+        <div class="detail-footer-actions" style="display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; margin-top: 2rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem;">
+          <div style="display: flex; gap: 10px;">
+            <button class="prc-btn prc-btn-outline" onclick="window.history.back()">
+              ${translations[lang]['details.back']}
+            </button>
+            <button class="prc-btn prc-btn-primary" onclick="goToOrder('${recipe.id}')">
+              <span class="prc-icon">🛒</span> ${translations[lang]['details.order_btn']}
+            </button>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="prc-btn prc-btn-outline" onclick="shareRecipe('${recipe.title}')">
+               <span class="prc-icon">🔗</span> ${translations[lang]['details.share']}
+            </button>
+            <button class="prc-btn prc-btn-outline" onclick="printRecipe()">
+               <span class="prc-icon">🖨️</span> ${translations[lang]['details.print']}
+            </button>
           </div>
         </div>
       </div>
     </article>
   `;
+  init3DTilt();
 }
 
 /* ============================================================
@@ -339,16 +364,16 @@ function showNotification(message, type = 'success') {
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-
+  
   const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : '🔔');
-
+  
   toast.innerHTML = `
     <div class="toast-icon">${icon}</div>
     <div class="toast-message">${message}</div>
   `;
 
   container.appendChild(toast);
-
+  
   // Trigger animation
   setTimeout(() => toast.classList.add('active'), 10);
 
@@ -444,13 +469,20 @@ async function syncFavorites() {
   }
 }
 
-function renderFavorites() {
+function renderFavorites(query = "") {
   const grid = document.getElementById("favoritesGrid");
   if (!grid) return;
 
   const lang = getCurrentLang();
   const favoriteIds = getFavorites();
-  const favoriteRecipes = recipes.filter(recipe => favoriteIds.some(id => String(id) === String(recipe.id)));
+  let favoriteRecipes = recipes.filter(recipe => favoriteIds.some(id => String(id) === String(recipe.id)));
+
+  if (query) {
+    favoriteRecipes = favoriteRecipes.filter(r => 
+        r.title.toLowerCase().includes(query.toLowerCase()) || 
+        r.description.toLowerCase().includes(query.toLowerCase())
+    );
+  }
 
   if (!favoriteRecipes.length) {
     grid.innerHTML = `
@@ -494,6 +526,7 @@ function renderFavorites() {
       </div>
     </article>
   `}).join("");
+  init3DTilt();
 }
 
 function renderFeaturedRecipes() {
@@ -502,7 +535,6 @@ function renderFeaturedRecipes() {
 
   const lang = getCurrentLang();
   const favoriteIds = getFavorites();
-  // Ensure we compare as strings for robustness
   const favoriteRecipes = recipes.filter(recipe => favoriteIds.some(id => String(id) === String(recipe.id)));
 
   if (!favoriteRecipes.length) {
@@ -548,6 +580,7 @@ function renderFeaturedRecipes() {
       </div>
     </article>
   `}).join("");
+  init3DTilt();
 }
 
 /* ============================================================
@@ -560,7 +593,7 @@ function initContactForm() {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
     const lang = getCurrentLang();
-
+    
     const name = document.getElementById("contactName").value;
     const email = document.getElementById("contactEmail").value;
     const message = document.getElementById("contactMsg").value;
@@ -610,7 +643,7 @@ function handleLogout() {
 function checkSession() {
   const user = JSON.parse(localStorage.getItem("user"));
   const path = window.location.pathname;
-
+  
   // Improved detection for auth pages
   const authFiles = ["index.html", "signup.html"];
   const isAuthPage = authFiles.some(file => path.endsWith(file)) || path.endsWith("/") || path.endsWith("humen");
@@ -765,153 +798,153 @@ function initThemeToggle() {
    ============================================================ */
 let translations = {
   ar: {
-    "nav.home": "الرئيسية",
-    "nav.fridge": "المطبخ الذكي",
-    "nav.recipes": "الوصفات",
-    "nav.favorites": "المفضلة",
-    "nav.orders": "الطلبات",
-    "nav.about": "عن المشروع",
-    "nav.contact": "تواصل معنا",
-    "nav.login": "دخول",
-    "nav.logout": "خروج",
+    "nav.home":          "الرئيسية",
+    "nav.fridge":        "المطبخ الذكي",
+    "nav.recipes":       "الوصفات",
+    "nav.favorites":     "المفضلة",
+    "nav.orders":        "الطلبات",
+    "nav.about":         "عن المشروع",
+    "nav.contact":       "تواصل معنا",
+    "nav.login":         "دخول",
+    "nav.logout":        "خروج",
     "nav.shopping_list": "قائمة التسوق",
-    "nav.profile": "حسابي",
-    "lang.btn": "EN",
+    "nav.profile":       "حسابي",
+    "lang.btn":          "EN",
 
-    "index.subtitle": "افتحي ثلاجتكِ... واتركي الباقي علينا",
-    "index.eyebrow": "من المكونات الموجودة عندك لوصفة حقيقية",
-    "index.h2": "اختاري المكونات<br>ودعي <span>BiteSight</span> يقترحلك ألذ وصفة",
-    "index.desc": "موقع ذكي وبسيط يساعدك تطلعي أكلة جميلة من الحاجات الموجودة عندك فعلاً. صور جذابة، خطوات سهلة، وتجربة مريحة جداً للعين.",
-    "index.btn.start": "ابدئي التجربة",
-    "index.btn.browse": "تصفحي الوصفات",
+    "index.subtitle":    "افتحي ثلاجتكِ... واتركي الباقي علينا",
+    "index.eyebrow":     "من المكونات الموجودة عندك لوصفة حقيقية",
+    "index.h2":          "اختاري المكونات<br>ودعي <span>BiteSight</span> يقترحلك ألذ وصفة",
+    "index.desc":        "موقع ذكي وبسيط يساعدك تطلعي أكلة جميلة من الحاجات الموجودة عندك فعلاً. صور جذابة، خطوات سهلة، وتجربة مريحة جداً للعين.",
+    "index.btn.start":   "ابدئي التجربة",
+    "index.btn.browse":  "تصفحي الوصفات",
     "index.stat1.label": "وصفة متنوعة",
     "index.stat2.label": "مكون متاح",
-    "index.stat3.val": "سهل",
+    "index.stat3.val":   "سهل",
     "index.stat3.label": "خطوات مختصرة",
-    "index.how.badge": "كيف يعمل؟",
-    "index.how.h3": "3 خطوات بسيطة لوجبتك القادمة",
-    "index.step1.h4": "افتحي الثلاجة",
-    "index.step1.p": "اختاري المكونات الموجودة عندك من واجهة لطيفة وواضحة.",
-    "index.step2.h4": "احصلي على اقتراح",
-    "index.step2.p": "الموقع يرشح لكِ وصفات مناسبة للمكونات المتاحة.",
-    "index.step3.h4": "ابدئي الطبخ",
-    "index.step3.p": "شاهدي صورة الوصفة والخطوات بطريقة منظمة وسهلة.",
-    "index.feat.badge": "وصفات مميزة",
-    "index.feat.h3": "اختيارات جميلة وسريعة",
-    "index.footer": "أهلاً بكِ في موقعنا المتواضع للطبخ",
+    "index.how.badge":   "كيف يعمل؟",
+    "index.how.h3":      "3 خطوات بسيطة لوجبتك القادمة",
+    "index.step1.h4":    "افتحي الثلاجة",
+    "index.step1.p":     "اختاري المكونات الموجودة عندك من واجهة لطيفة وواضحة.",
+    "index.step2.h4":    "احصلي على اقتراح",
+    "index.step2.p":     "الموقع يرشح لكِ وصفات مناسبة للمكونات المتاحة.",
+    "index.step3.h4":    "ابدئي الطبخ",
+    "index.step3.p":     "شاهدي صورة الوصفة والخطوات بطريقة منظمة وسهلة.",
+    "index.feat.badge":  "وصفات مميزة",
+    "index.feat.h3":     "اختيارات جميلة وسريعة",
+    "index.footer":      "أهلاً بكِ في موقعنا المتواضع للطبخ",
 
-    "fridge.subtitle": "حددي المكونات الموجودة عندك، والباقي علينا",
-    "fridge.badge": "المطبخ الذكي",
-    "fridge.h3": "اختاري المكونات المتوفرة لديكِ",
-    "fridge.hint": "اضغطي على أي مكون لإضافته، ثم اطلعي على الوصفات المطابقة.",
-    "fridge.selected": "المكونات المختارة",
-    "fridge.btn.find": "اقترح لي وصفات",
-    "fridge.btn.clear": "مسح الاختيارات",
-    "fridge.empty_sel": "لم يتم اختيار أي مكونات بعد.",
+    "fridge.subtitle":   "حددي المكونات الموجودة عندك، والباقي علينا",
+    "fridge.badge":      "المطبخ الذكي",
+    "fridge.h3":         "اختاري المكونات المتوفرة لديكِ",
+    "fridge.hint":       "اضغطي على أي مكون لإضافته، ثم اطلعي على الوصفات المطابقة.",
+    "fridge.selected":   "المكونات المختارة",
+    "fridge.btn.find":   "اقترح لي وصفات",
+    "fridge.btn.clear":  "مسح الاختيارات",
+    "fridge.empty_sel":  "لم يتم اختيار أي مكونات بعد.",
 
-    "recipes.subtitle": "اقتراحات بناءً على ذوقك ومكوناتك",
-    "recipes.badge": "اقتراحات الوصفات",
-    "recipes.h3": "وصفات تطابق المكونات المختارة",
-    "recipes.sel_ing": "المكونات المختارة",
-    "recipes.no_sel": "لا توجد مكونات مختارة. نعرض كل الوصفات المتاحة.",
-    "recipes.no_match": "لم نجد وصفات تطابق المكونات تماماً. جربي اختيار مكونات أخرى.",
+    "recipes.subtitle":  "اقتراحات بناءً على ذوقك ومكوناتك",
+    "recipes.badge":     "اقتراحات الوصفات",
+    "recipes.h3":        "وصفات تطابق المكونات المختارة",
+    "recipes.sel_ing":   "المكونات المختارة",
+    "recipes.no_sel":    "لا توجد مكونات مختارة. نعرض كل الوصفات المتاحة.",
+    "recipes.no_match":  "لم نجد وصفات تطابق المكونات تماماً. جربي اختيار مكونات أخرى.",
     "recipes.btn.details": "التفاصيل",
-    "recipes.btn.order": "طلب الآن",
-    "recipes.saved": "محفوظة",
-    "recipes.save": "حفظ",
+    "recipes.btn.order":  "طلب الآن",
+    "recipes.saved":     "محفوظة",
+    "recipes.save":      "حفظ",
 
     "details.match_score": "المكونات المتوفرة",
-    "details.ing_title": "المكونات",
-    "details.prep_title": "خطوات التحضير",
-    "details.have_it": "متوفر",
-    "details.missing": "ناقص",
-    "details.back": "← العودة للوصفات",
-    "details.order_btn": "اطلبي هذه الوجبة",
-    "details.share": "مشاركة",
-    "details.print": "طباعة الوصفة",
-    "details.add_shop": "إضافة لقائمة التسوق",
+    "details.ing_title":   "المكونات",
+    "details.prep_title":  "خطوات التحضير",
+    "details.have_it":     "متوفر",
+    "details.missing":     "ناقص",
+    "details.back":        "← العودة للوصفات",
+    "details.order_btn":   "اطلبي هذه الوجبة",
+    "details.share":       "مشاركة",
+    "details.print":       "طباعة الوصفة",
+    "details.add_shop":    "إضافة لقائمة التسوق",
 
-    "favs.subtitle": "احتفظي بوصفاتك المفضلة في مكان واحد",
-    "favs.badge": "وصفاتك المفضلة",
-    "favs.h3": "كل ما قمتِ بحفظه سيظهر هنا",
-    "favs.no_favs": "لا توجد وصفات محفوظة بعد. احفظي ما يعجبك وسيظهر هنا.",
-    "favs.remove": "حذف",
+    "favs.subtitle":     "احتفظي بوصفاتك المفضلة في مكان واحد",
+    "favs.badge":        "وصفاتك المفضلة",
+    "favs.h3":           "كل ما قمتِ بحفظه سيظهر هنا",
+    "favs.no_favs":      "لا توجد وصفات محفوظة بعد. احفظي ما يعجبك وسيظهر هنا.",
+    "favs.remove":       "حذف",
 
-    "shop.subtitle": "خدمة ذكية",
-    "shop.h3": "قائمة تسوقك",
-    "shop.desc": "هنا تجدين كل المكونات التي قمتِ بإضافتها لتكملي وصفاتك اللذيذة.",
-    "shop.empty": "قائمة التسوق فارغة",
-    "shop.empty_desc": "ابدئي بإضافة المكونات الناقصة من صفحة تفاصيل الوصفة.",
-    "shop.browse": "تصفح الوصفات",
-    "shop.clear": "مسح القائمة بالكامل",
-    "shop.loading": "جاري تحميل القائمة...",
+    "shop.subtitle":     "خدمة ذكية",
+    "shop.h3":           "قائمة تسوقك",
+    "shop.desc":         "هنا تجدين كل المكونات التي قمتِ بإضافتها لتكملي وصفاتك اللذيذة.",
+    "shop.empty":        "قائمة التسوق فارغة",
+    "shop.empty_desc":   "ابدئي بإضافة المكونات الناقصة من صفحة تفاصيل الوصفة.",
+    "shop.browse":       "تصفح الوصفات",
+    "shop.clear":        "مسح القائمة بالكامل",
+    "shop.loading":      "جاري تحميل القائمة...",
 
-    "orders.subtitle": "تاريخ طلباتك",
-    "orders.h3": "طلباتي السابقة",
-    "orders.no_orders": "ليس لديكِ أي طلبات بعد",
-    "orders.browse": "تصفحي الوصفات وقومي بأول طلب لكِ",
-    "orders.loading": "جاري تحميل طلباتك...",
-    "orders.delivery": "مطلوب في",
-    "orders.at_time": "الساعة",
-    "orders.order_id": "رقم الطلب",
+    "orders.subtitle":   "تاريخ طلباتك",
+    "orders.h3":         "طلباتي السابقة",
+    "orders.no_orders":  "ليس لديكِ أي طلبات بعد",
+    "orders.browse":     "تصفحي الوصفات وقومي بأول طلب لكِ",
+    "orders.loading":    "جاري تحميل طلباتك...",
+    "orders.delivery":   "مطلوب في",
+    "orders.at_time":    "الساعة",
+    "orders.order_id":   "رقم الطلب",
     "orders.order_date": "تاريخ الطلب",
-    "orders.address": "العنوان",
-    "orders.map": "عرض الموقع على الخريطة",
-    "orders.pending": "قيد الانتظار",
-    "orders.confirmed": "تم التأكيد",
-    "orders.delivered": "تم التوصيل",
-    "orders.cancelled": "ملغي",
+    "orders.address":    "العنوان",
+    "orders.map":        "عرض الموقع على الخريطة",
+    "orders.pending":    "قيد الانتظار",
+    "orders.confirmed":  "تم التأكيد",
+    "orders.delivered":  "تم التوصيل",
+    "orders.cancelled":  "ملغي",
 
-    "about.subtitle": "مشروع يجعل الطبخ أسهل وأجمل",
-    "about.badge": "عن BiteSight",
-    "about.h3": "فكرة بسيطة... لكنها مفيدة جداً",
-    "about.p1": "BiteSight هو موقع يساعد المستخدمين على اختيار المكونات المتوفرة لديهم ثم الحصول على اقتراحات لوصفات مع صور جميلة وخطوات واضحة.",
-    "about.p2": "ركزنا في التصميم على الألوان الدافئة، والراحة البصرية، وسهولة الاستخدام لتكون التجربة ممتعة حتى قبل البدء في الطبخ.",
-    "about.p3": "المشروع مناسب كمشروع تخرج، أو مشروع للواجهات الأمامية (Frontend)، أو كبداية لمنصة وصفات ذكية.",
+    "about.subtitle":    "مشروع يجعل الطبخ أسهل وأجمل",
+    "about.badge":       "عن BiteSight",
+    "about.h3":          "فكرة بسيطة... لكنها مفيدة جداً",
+    "about.p1":          "BiteSight هو موقع يساعد المستخدمين على اختيار المكونات المتوفرة لديهم ثم الحصول على اقتراحات لوصفات مع صور جميلة وخطوات واضحة.",
+    "about.p2":          "ركزنا في التصميم على الألوان الدافئة، والراحة البصرية، وسهولة الاستخدام لتكون التجربة ممتعة حتى قبل البدء في الطبخ.",
+    "about.p3":          "المشروع مناسب كمشروع تخرج، أو مشروع للواجهات الأمامية (Frontend)، أو كبداية لمنصة وصفات ذكية.",
 
-    "contact.subtitle": "نسعد بسماع رأيك وتواصلك معنا",
-    "contact.badge": "تواصل مباشر",
-    "contact.h3": "أرسلي لنا رسالتك",
-    "contact.name": "الاسم الكامل",
-    "contact.email": "البريد الإلكتروني",
-    "contact.msg": "رسالتك",
-    "contact.send": "إرسال",
+    "contact.subtitle":  "نسعد بسماع رأيك وتواصلك معنا",
+    "contact.badge":     "تواصل مباشر",
+    "contact.h3":        "أرسلي لنا رسالتك",
+    "contact.name":      "الاسم الكامل",
+    "contact.email":     "البريد الإلكتروني",
+    "contact.msg":       "رسالتك",
+    "contact.send":      "إرسال",
 
-    "login.subtitle": "سجلي دخولك وعودي لوصفاتك المفضلة",
-    "login.badge": "تسجيل الدخول",
-    "login.h3": "أهلاً بكِ مجدداً",
-    "login.email": "البريد الإلكتروني",
-    "login.password": "كلمة المرور",
-    "login.forgot": "نسيتِ كلمة المرور؟",
-    "login.btn": "دخول",
-    "login.noacc": "ليس لديكِ حساب؟",
-    "login.signup": "اشتركي الآن",
-    "login.or": "أو تابعي باستخدام",
+    "login.subtitle":    "سجلي دخولك وعودي لوصفاتك المفضلة",
+    "login.badge":       "تسجيل الدخول",
+    "login.h3":          "أهلاً بكِ مجدداً",
+    "login.email":       "البريد الإلكتروني",
+    "login.password":    "كلمة المرور",
+    "login.forgot":      "نسيتِ كلمة المرور؟",
+    "login.btn":         "دخول",
+    "login.noacc":       "ليس لديكِ حساب؟",
+    "login.signup":      "اشتركي الآن",
+    "login.or":          "أو تابعي باستخدام",
 
-    "signup.subtitle": "انضمي لعائلة BiteSight واستمتعي بالطبخ",
-    "signup.badge": "حساب جديد",
-    "signup.h3": "إنشاء حساب",
-    "signup.name": "الاسم الكامل",
-    "signup.confirm": "تأكيد كلمة المرور",
-    "signup.btn": "إنشاء الحساب",
-    "signup.haveacc": "لديكِ حساب بالفعل؟",
-    "signup.login": "سجلي دخولك",
-    "signup.terms": "أوافق على الشروط والأحكام",
+    "signup.subtitle":   "انضمي لعائلة BiteSight واستمتعي بالطبخ",
+    "signup.badge":      "حساب جديد",
+    "signup.h3":         "إنشاء حساب",
+    "signup.name":       "الاسم الكامل",
+    "signup.confirm":    "تأكيد كلمة المرور",
+    "signup.btn":        "إنشاء الحساب",
+    "signup.haveacc":    "لديكِ حساب بالفعل؟",
+    "signup.login":      "سجلي دخولك",
+    "signup.terms":      "أوافق على الشروط والأحكام",
 
-    "forgot.subtitle": "استعادة كلمة المرور",
-    "forgot.h3": "تحديث كلمة المرور",
-    "forgot.btn": "تحديث كلمة المرور",
+    "forgot.subtitle":   "استعادة كلمة المرور",
+    "forgot.h3":         "تحديث كلمة المرور",
+    "forgot.btn":        "تحديث كلمة المرور",
     "forgot.remembered": "تذكرتِ كلمة المرور؟",
 
-    "profile.badge": "معلوماتك الشخصية",
-    "profile.h3": "مرحباً بكِ في حسابك الخاص",
+    "profile.badge":     "معلوماتك الشخصية",
+    "profile.h3":        "مرحباً بكِ في حسابك الخاص",
     "profile.label.name": "الاسم الكامل",
     "profile.label.email": "البريد الإلكتروني",
     "profile.btn.logout": "خروج من الحساب",
-    "profile.btn.save": "حفظ التعديلات",
+    "profile.btn.save":   "حفظ التعديلات",
     "profile.label.old_pass": "كلمة المرور الحالية",
     "profile.label.new_pass": "كلمة المرور الجديدة",
-    "profile.greeting": "أهلاً بكِ، ",
+    "profile.greeting":  "أهلاً بكِ، ",
 
     "footer.desc": "اكتشفي عالم الطبخ الذكي مع BiteSight. نساعدكِ على تحويل المكونات البسيطة إلى وجبات استثنائية بلمسة واحدة.",
     "footer.rights": "جميع الحقوق محفوظة &copy; 2026",
@@ -939,153 +972,153 @@ let translations = {
   },
 
   en: {
-    "nav.home": "Home",
-    "nav.fridge": "Fridge",
-    "nav.recipes": "Recipes",
-    "nav.favorites": "Favorites",
-    "nav.orders": "Orders",
-    "nav.about": "About",
-    "nav.contact": "Contact",
-    "nav.login": "Login",
-    "nav.logout": "Logout",
+    "nav.home":          "Home",
+    "nav.fridge":        "Fridge",
+    "nav.recipes":       "Recipes",
+    "nav.favorites":     "Favorites",
+    "nav.orders":        "Orders",
+    "nav.about":         "About",
+    "nav.contact":       "Contact",
+    "nav.login":         "Login",
+    "nav.logout":        "Logout",
     "nav.shopping_list": "Shopping",
-    "nav.profile": "Profile",
-    "lang.btn": "ع",
+    "nav.profile":       "Profile",
+    "lang.btn":          "ع",
 
-    "index.subtitle": "Open your fridge... and leave the rest to us",
-    "index.eyebrow": "From what you have to a real recipe",
-    "index.h2": "Pick your ingredients<br>and let <span>BiteSight</span> suggest the tastiest recipe",
-    "index.desc": "A smart and simple website that helps you create a beautiful meal from what you actually have. Stunning photos, easy steps, and a very comfortable experience for your eyes.",
-    "index.btn.start": "Get Started",
-    "index.btn.browse": "Browse Recipes",
+    "index.subtitle":    "Open your fridge... and leave the rest to us",
+    "index.eyebrow":     "From what you have to a real recipe",
+    "index.h2":          "Pick your ingredients<br>and let <span>BiteSight</span> suggest the tastiest recipe",
+    "index.desc":        "A smart and simple website that helps you create a beautiful meal from what you actually have. Stunning photos, easy steps, and a very comfortable experience for your eyes.",
+    "index.btn.start":   "Get Started",
+    "index.btn.browse":  "Browse Recipes",
     "index.stat1.label": "Diverse Recipes",
     "index.stat2.label": "Available Ingredients",
-    "index.stat3.val": "Easy",
+    "index.stat3.val":   "Easy",
     "index.stat3.label": "Short Steps",
-    "index.how.badge": "How it works?",
-    "index.how.h3": "Just 3 steps to your perfect recipe",
-    "index.step1.h4": "Open the Fridge",
-    "index.step1.p": "Select available ingredients from a clean and intuitive interface.",
-    "index.step2.h4": "Get a Suggestion",
-    "index.step2.p": "The site recommends recipes that match your available ingredients.",
-    "index.step3.h4": "Start Cooking",
-    "index.step3.p": "View the recipe photo and steps in an organized, easy-to-follow way.",
-    "index.feat.badge": "Featured Recipes",
-    "index.feat.h3": "Beautiful and quick picks",
-    "index.footer": "Welcome to our humble food website",
+    "index.how.badge":   "How it works?",
+    "index.how.h3":      "Just 3 steps to your perfect recipe",
+    "index.step1.h4":    "Open the Fridge",
+    "index.step1.p":     "Select available ingredients from a clean and intuitive interface.",
+    "index.step2.h4":    "Get a Suggestion",
+    "index.step2.p":     "The site recommends recipes that match your available ingredients.",
+    "index.step3.h4":    "Start Cooking",
+    "index.step3.p":     "View the recipe photo and steps in an organized, easy-to-follow way.",
+    "index.feat.badge":  "Featured Recipes",
+    "index.feat.h3":     "Beautiful and quick picks",
+    "index.footer":      "Welcome to our humble food website",
 
-    "fridge.subtitle": "Pick what you have, and leave the rest to us",
-    "fridge.badge": "Smart Fridge",
-    "fridge.h3": "Select your available ingredients",
-    "fridge.hint": "Tap any ingredient to add it, then see the matching recipes.",
-    "fridge.selected": "Selected Ingredients",
-    "fridge.btn.find": "Suggest Recipes",
-    "fridge.btn.clear": "Clear Selection",
-    "fridge.empty_sel": "No ingredients selected yet.",
+    "fridge.subtitle":   "Pick what you have, and leave the rest to us",
+    "fridge.badge":      "Smart Fridge",
+    "fridge.h3":         "Select your available ingredients",
+    "fridge.hint":       "Tap any ingredient to add it, then see the matching recipes.",
+    "fridge.selected":   "Selected Ingredients",
+    "fridge.btn.find":   "Suggest Recipes",
+    "fridge.btn.clear":  "Clear Selection",
+    "fridge.empty_sel":  "No ingredients selected yet.",
 
-    "recipes.subtitle": "Suggestions based on your taste and ingredients",
-    "recipes.badge": "Recipe Suggestions",
-    "recipes.h3": "Recipes matching your selected ingredients",
-    "recipes.sel_ing": "Selected ingredients",
-    "recipes.no_sel": "No ingredients selected. Showing all available recipes.",
-    "recipes.no_match": "No matching recipes found. Try different ingredients.",
+    "recipes.subtitle":  "Suggestions based on your taste and ingredients",
+    "recipes.badge":     "Recipe Suggestions",
+    "recipes.h3":        "Recipes matching your selected ingredients",
+    "recipes.sel_ing":   "Selected ingredients",
+    "recipes.no_sel":    "No ingredients selected. Showing all available recipes.",
+    "recipes.no_match":  "No matching recipes found. Try different ingredients.",
     "recipes.btn.details": "Details",
-    "recipes.btn.order": "Order Now",
-    "recipes.saved": "Saved",
-    "recipes.save": "Save",
+    "recipes.btn.order":  "Order Now",
+    "recipes.saved":     "Saved",
+    "recipes.save":      "Save",
 
     "details.match_score": "Ingredients available",
-    "details.ing_title": "Ingredients",
-    "details.prep_title": "Preparation Steps",
-    "details.have_it": "Have it",
-    "details.missing": "Missing",
-    "details.back": "← Go Back",
-    "details.order_btn": "Order this Meal",
-    "details.share": "Share",
-    "details.print": "Print Recipe",
-    "details.add_shop": "Add to Shopping List",
+    "details.ing_title":   "Ingredients",
+    "details.prep_title":  "Preparation Steps",
+    "details.have_it":     "Have it",
+    "details.missing":     "Missing",
+    "details.back":        "← Go Back",
+    "details.order_btn":   "Order this Meal",
+    "details.share":       "Share",
+    "details.print":       "Print Recipe",
+    "details.add_shop":    "Add to Shopping List",
 
-    "favs.subtitle": "Keep your favourite recipes in one place",
-    "favs.badge": "Your Favourites",
-    "favs.h3": "Everything you saved will appear here",
-    "favs.no_favs": "No saved recipes yet. Save your favorites and they will appear here.",
-    "favs.remove": "Remove",
+    "favs.subtitle":     "Keep your favourite recipes in one place",
+    "favs.badge":        "Your Favourites",
+    "favs.h3":           "Everything you saved will appear here",
+    "favs.no_favs":      "No saved recipes yet. Save your favorites and they will appear here.",
+    "favs.remove":       "Remove",
 
-    "shop.subtitle": "Smart Service",
-    "shop.h3": "Your Shopping List",
-    "shop.desc": "Here you'll find all the ingredients you've added to complete your delicious recipes.",
-    "shop.empty": "Shopping list is empty",
-    "shop.empty_desc": "Start adding missing ingredients from the recipe details page.",
-    "shop.browse": "Browse Recipes",
-    "shop.clear": "Clear Entire List",
-    "shop.loading": "Loading list...",
+    "shop.subtitle":     "Smart Service",
+    "shop.h3":           "Your Shopping List",
+    "shop.desc":         "Here you'll find all the ingredients you've added to complete your delicious recipes.",
+    "shop.empty":        "Shopping list is empty",
+    "shop.empty_desc":   "Start adding missing ingredients from the recipe details page.",
+    "shop.browse":       "Browse Recipes",
+    "shop.clear":        "Clear Entire List",
+    "shop.loading":      "Loading list...",
 
-    "orders.subtitle": "Order History",
-    "orders.h3": "My Previous Orders",
-    "orders.no_orders": "You have no orders yet",
-    "orders.browse": "Browse recipes and place your first order",
-    "orders.loading": "Loading your orders...",
-    "orders.delivery": "Required at",
-    "orders.at_time": "at",
-    "orders.order_id": "Order ID",
+    "orders.subtitle":   "Order History",
+    "orders.h3":         "My Previous Orders",
+    "orders.no_orders":  "You have no orders yet",
+    "orders.browse":     "Browse recipes and place your first order",
+    "orders.loading":    "Loading your orders...",
+    "orders.delivery":   "Required at",
+    "orders.at_time":    "at",
+    "orders.order_id":   "Order ID",
     "orders.order_date": "Order Date",
-    "orders.address": "Address",
-    "orders.map": "View Location on Map",
-    "orders.pending": "Pending",
-    "orders.confirmed": "Confirmed",
-    "orders.delivered": "Delivered",
-    "orders.cancelled": "Cancelled",
+    "orders.address":    "Address",
+    "orders.map":        "View Location on Map",
+    "orders.pending":    "Pending",
+    "orders.confirmed":  "Confirmed",
+    "orders.delivered":  "Delivered",
+    "orders.cancelled":  "Cancelled",
 
-    "about.subtitle": "A project that makes cooking easier and more beautiful",
-    "about.badge": "About BiteSight",
-    "about.h3": "A simple idea... but incredibly useful",
-    "about.p1": "BiteSight is a website that helps users select the ingredients they have and then get recipe suggestions with beautiful photos and clear steps.",
-    "about.p2": "We focused our design on warm colors, visual comfort, and ease of use so that the experience is enjoyable even before cooking starts.",
-    "about.p3": "The project is suitable as a graduation project, a frontend project, or a starting point for a smart recipe platform.",
+    "about.subtitle":    "A project that makes cooking easier and more beautiful",
+    "about.badge":       "About BiteSight",
+    "about.h3":          "A simple idea... but incredibly useful",
+    "about.p1":          "BiteSight is a website that helps users select the ingredients they have and then get recipe suggestions with beautiful photos and clear steps.",
+    "about.p2":          "We focused our design on warm colors, visual comfort, and ease of use so that the experience is enjoyable even before cooking starts.",
+    "about.p3":          "The project is suitable as a graduation project, a frontend project, or a starting point for a smart recipe platform.",
 
-    "contact.subtitle": "We're happy to hear from you",
-    "contact.badge": "Contact Us",
-    "contact.h3": "Send us your message",
-    "contact.name": "Name",
-    "contact.email": "Email Address",
-    "contact.msg": "Your message",
-    "contact.send": "Send",
+    "contact.subtitle":  "We're happy to hear from you",
+    "contact.badge":     "Contact Us",
+    "contact.h3":        "Send us your message",
+    "contact.name":      "Name",
+    "contact.email":     "Email Address",
+    "contact.msg":       "Your message",
+    "contact.send":      "Send",
 
-    "login.subtitle": "Log in and return to your favorite recipes",
-    "login.badge": "Login",
-    "login.h3": "Welcome Back",
-    "login.email": "Email Address",
-    "login.password": "Password",
-    "login.forgot": "Forgot Password?",
-    "login.btn": "Login",
-    "login.noacc": "Don't have an account?",
-    "login.signup": "Sign up now",
-    "login.or": "Or continue with",
+    "login.subtitle":    "Log in and return to your favorite recipes",
+    "login.badge":       "Login",
+    "login.h3":          "Welcome Back",
+    "login.email":       "Email Address",
+    "login.password":    "Password",
+    "login.forgot":      "Forgot Password?",
+    "login.btn":         "Login",
+    "login.noacc":       "Don't have an account?",
+    "login.signup":      "Sign up now",
+    "login.or":          "Or continue with",
 
-    "signup.subtitle": "Join the BiteSight community and enjoy cooking",
-    "signup.badge": "New Account",
-    "signup.h3": "Create Account",
-    "signup.name": "Full Name",
-    "signup.confirm": "Confirm Password",
-    "signup.btn": "Create Account",
-    "signup.haveacc": "Already have an account?",
-    "signup.login": "Log in",
-    "signup.terms": "I agree to the Terms & Conditions",
+    "signup.subtitle":   "Join the BiteSight community and enjoy cooking",
+    "signup.badge":      "New Account",
+    "signup.h3":         "Create Account",
+    "signup.name":       "Full Name",
+    "signup.confirm":    "Confirm Password",
+    "signup.btn":        "Create Account",
+    "signup.haveacc":    "Already have an account?",
+    "signup.login":      "Log in",
+    "signup.terms":      "I agree to the Terms & Conditions",
 
-    "forgot.subtitle": "Recover Password",
-    "forgot.h3": "Update Password",
-    "forgot.btn": "Update Password",
+    "forgot.subtitle":   "Recover Password",
+    "forgot.h3":         "Update Password",
+    "forgot.btn":        "Update Password",
     "forgot.remembered": "Remembered your password?",
 
-    "profile.badge": "Personal Information",
-    "profile.h3": "Welcome to your private account",
+    "profile.badge":     "Personal Information",
+    "profile.h3":        "Welcome to your private account",
     "profile.label.name": "Full Name",
     "profile.label.email": "Email Address",
     "profile.btn.logout": "Logout from Account",
-    "profile.btn.save": "Save Changes",
+    "profile.btn.save":   "Save Changes",
     "profile.label.old_pass": "Current Password",
     "profile.label.new_pass": "New Password",
-    "profile.greeting": "Hi, ",
+    "profile.greeting":  "Hi, ",
 
     "footer.desc": "Discover the world of smart cooking with BiteSight. We help you transform simple ingredients into extraordinary meals with a single touch.",
     "footer.rights": "All rights reserved &copy; 2026",
@@ -1172,7 +1205,7 @@ function initLangToggle() {
    RENDER: PROFILE
    ============================================================ */
 async function renderProfile() {
-  const container = document.querySelector(".profile-premium-container");
+  const container = document.querySelector(".profile-container");
   if (!container) return;
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -1186,10 +1219,10 @@ async function renderProfile() {
       document.getElementById("profileName").textContent = result.user.full_name;
       const nameInput = document.getElementById("editFullName");
       const emailInput = document.getElementById("editEmail");
-
+      
       if (nameInput) nameInput.value = result.user.full_name;
       if (emailInput) emailInput.value = result.user.email;
-
+      
       document.getElementById("profileAvatar").textContent = result.user.full_name.charAt(0).toUpperCase();
 
       // Load Stats for Dashboard
@@ -1197,75 +1230,20 @@ async function renderProfile() {
         const statsRes = await fetch(`api.php?action=get_user_stats&user_id=${user.id}`);
         const stats = await statsRes.json();
         if (!stats.error) {
-          document.getElementById("statFavCount").textContent = stats.favorites;
-          document.getElementById("statShopCount").textContent = stats.shopping_list;
-          document.getElementById("statPlanCount").textContent = stats.meal_plan;
+           document.getElementById("statFavCount").textContent = stats.favorites;
+           document.getElementById("statShopCount").textContent = stats.shopping_list;
+           document.getElementById("statPlanCount").textContent = stats.meal_plan;
         }
-      } catch (e) { }
+      } catch(e) {}
 
       // IMPORTANT: Explicitly clear password fields on load
       const oldPass = document.getElementById("oldPassword");
       const newPass = document.getElementById("newPassword");
       if (oldPass) oldPass.value = "";
       if (newPass) newPass.value = "";
-
-      renderProfileOrders();
     }
   } catch (error) {
     console.error("Error loading profile:", error);
-  }
-}
-
-async function renderProfileOrders() {
-  const container = document.getElementById("tabOrders");
-  if (!container) return;
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) return;
-
-  const lang = getCurrentLang();
-  const t = translations[lang];
-
-  container.innerHTML = `<div class="loading-spinner-container"><div class="spinner"></div><p>${t['orders.loading']}</p></div>`;
-
-  try {
-    const response = await fetch(`api.php?action=get_user_orders&user_id=${user.id}`);
-    const orders = await response.json();
-
-    if (!orders || orders.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state-msg">
-          <p>${t['orders.no_orders']}</p>
-          <a href="recipes.html" class="btn btn-primary" style="margin-top: 1rem;">${t['orders.browse']}</a>
-        </div>
-      `;
-      return;
-    }
-
-    let html = '';
-    orders.forEach(order => {
-      const statusClass = order.status === 'Pending' ? 'status-pending' : 'status-confirmed';
-      const statusText = t[`orders.${order.status.toLowerCase()}`] || order.status;
-
-      html += `
-        <div class="order-card-premium">
-          <img src="${order.recipe_image}" alt="${order.recipe_name}" class="order-img">
-          <div class="order-info">
-            <h5>${order.recipe_name}</h5>
-            <div class="order-meta">
-              <p>#${order.id} | ${order.order_date}</p>
-              <p>${order.address}</p>
-            </div>
-          </div>
-          <div class="order-status ${statusClass}">
-            ${statusText}
-          </div>
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-  } catch (error) {
-    container.innerHTML = `<p class="error-msg">Error loading orders.</p>`;
   }
 }
 
@@ -1291,9 +1269,9 @@ async function saveProfileChanges() {
       // Update local storage
       user.name = newName;
       localStorage.setItem("user", JSON.stringify(user));
-
+      
       showNotification(getCurrentLang() === 'ar' ? "تم تحديث الملف الشخصي بنجاح!" : "Profile updated successfully!", 'success');
-
+      
       // Refresh UI
       displayUserGreeting();
       renderProfile();
@@ -1346,7 +1324,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   displayUserGreeting();
   initAuthForms(); // Moved up to ensure it runs early
   initContactForm();
-
+  
   await loadData();
   renderIngredients();
   renderRecipes();
@@ -1354,6 +1332,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderFavorites();
   renderFeaturedRecipes();
   renderProfile();
+
+  // Search Listeners
+  const ingSearch = document.getElementById("ingSearchInput");
+  if (ingSearch) {
+    ingSearch.addEventListener("input", (e) => renderIngredients(e.target.value));
+  }
+
+  const recipeSearch = document.getElementById("recipeSearchInput");
+  if (recipeSearch) {
+    recipeSearch.addEventListener("input", (e) => renderRecipes(e.target.value));
+  }
+
+  const favSearch = document.getElementById("favSearchInput");
+  if (favSearch) {
+    favSearch.addEventListener("input", (e) => renderFavorites(e.target.value));
+  }
 
   // Header Scroll Effect
   const header = document.querySelector(".site-header");
@@ -1452,4 +1446,38 @@ function shareRecipe(title) {
       showNotification(t['toast.link_copied'], 'success');
     });
   }
+}
+
+/* ============================================================
+   3D DISPLAY SYSTEM
+   ============================================================ */
+function init3DTilt() {
+  const cards = document.querySelectorAll('.premium-recipe-card, .recipe-detail-card, .ingredient-item, .auth-card');
+
+  cards.forEach(card => {
+    if (card.dataset.tiltInit) return;
+    card.dataset.tiltInit = "true";
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -10; // Max 10deg
+      const rotateY = ((x - centerX) / centerX) * 10;
+
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      card.style.transition = 'transform 0.1s ease-out';
+      card.style.zIndex = '10';
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      card.style.zIndex = '';
+    });
+  });
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head><meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | الرئيسية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v11_fixed" />
+  <style>
+    .error-container {
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .error-code {
+      font-size: 150px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      line-height: 1;
+    }
+    .error-msg {
+      font-size: 24px;
+      color: var(--text-muted);
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="logo" href="home.html">
+        <span class="logo-badge">🍽️</span>
+        <div>
+          <h1>BiteSight</h1>
+        </div>
+      </a>
+    </header>
+
+    <main class="error-container">
+      <h1 class="error-code">404</h1>
+      <p class="error-msg">أوبس! المطبخ فاضي هنا... الصفحة مش موجودة.</p>
+      <a href="home.html" class="btn btn-primary">ارجعي للرئيسية</a>
+    </main>
+  </div>
+</body>
+</html>

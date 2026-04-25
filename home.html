@@ -7,205 +7,153 @@
   <title>BiteSight | الرئيسية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=p6" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v34" />
+  <script>
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  </script>
 </head>
 
 <body>
   <div class="page-shell">
-    <header class="topbar">
-      <a class="logo" href="home.html">
-        <span class="logo-badge">🍽️</span>
-        <div>
-          <h1>BiteSight</h1>
-          <p data-i18n="index.subtitle">افتحي التلاجة... وسيبي الباقي علينا</p>
-        </div>
-      </a>
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
 
-      <nav class="nav">
-        <a class="active" href="home.html" data-i18n="nav.home">الرئيسية</a>
-        <a href="fridge.html" data-i18n="nav.fridge">التلاجة</a>
-        <a href="recipes.html" data-i18n="nav.recipes">الوصفات</a>
-        <a href="favorites.html" data-i18n="nav.favorites">المفضلة</a>
-        <a href="about.html" data-i18n="nav.about">عنّا</a>
-        <a href="contact.html" data-i18n="nav.contact">تواصل</a>
-      </nav>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" class="active" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
 
-      <div class="nav-hub">
-        <div class="user-profile" id="userProfile" title="الملف الشخصي">
-          <div class="user-avatar-small" id="userAvatar">U</div>
-          <div class="user-info-brief">
-            <span class="user-name-label" id="userName">المستخدم</span>
-            <span class="logout-action" onclick="handleLogout()" data-i18n="nav.logout">خروج</span>
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
           </div>
+          <button id="themeToggle" title="تبديل الوضع">☀️</button>
+          <button id="langToggle" title="Switch Language">
+            <span class="lang-icon">🌐</span>
+            <span class="lang-label">EN</span>
+          </button>
         </div>
-        <button id="themeToggle" title="تبديل المظهر">☀️</button>
-        <button id="langToggle" title="Switch Language">
-          <span class="lang-icon">🌐</span>
-          <span class="lang-label">EN</span>
-        </button>
       </div>
     </header>
 
     <main>
-      <section class="hero">
-        <div class="hero-text">
-          <span class="eyebrow" data-i18n="index.eyebrow">من المكونات الموجودة عندك لوصفة حقيقية</span>
-          <h2 data-i18n="index.h2">اختاري مكوناتك<br>وخلي <span>BiteSight</span> يقترحلك ألذ وصفة</h2>
-          <p data-i18n="index.desc">
-            موقع ذكي وبسيط يساعدك تطلعي أكلة جميلة من الحاجات الموجودة عندك فعلاً.
-            صور جذابة، خطوات سهلة، وتجربة مريحة جداً للعين.
-          </p>
-
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="fridge.html" data-i18n="index.btn.start">ابدئي الآن</a>
-            <a class="btn btn-secondary" href="recipes.html" data-i18n="index.btn.browse">تصفحي الوصفات</a>
-          </div>
-
-          <div class="hero-stats">
-            <div class="stat-card">
-              <strong>120+</strong>
-              <span data-i18n="index.stat1.label">وصفة متنوعة</span>
+      <!-- Hero Section -->
+      <section class="hero-premium">
+        <div class="hero-container-inner">
+          <div class="hero-content">
+            <span class="hero-badge" data-i18n="home.hero.badge">استكشفي المذاق الذكي</span>
+            <div class="cinematic-header">
+              <span class="sub-line">مطبخكِ أصبح</span>
+              <h2 class="main-line highlight">أكثر ذكاءً</h2>
             </div>
-            <div class="stat-card">
-              <strong>30+</strong>
-              <span data-i18n="index.stat2.label">مكون متاح</span>
-            </div>
-            <div class="stat-card">
-              <strong data-i18n="index.stat3.val">سهل</strong>
-              <span data-i18n="index.stat3.label">خطوات مختصرة</span>
+            <p class="hero-subtitle" data-i18n="home.hero.subtitle">حوّلي المكونات البسيطة في ثلاجتكِ إلى أطباق عالمية بلمسة واحدة. تجربة طهي فريدة تعتمد على ما تملكين.</p>
+            <div class="hero-btns">
+              <a href="fridge.html" class="btn btn-primary hero-btn">
+                <span data-i18n="home.hero.btn_start">ابدئي الطبخ الآن</span>
+                <i>🔥</i>
+              </a>
+              <a href="recipes.html" class="btn btn-outline hero-btn" data-i18n="home.hero.btn_browse">تصفحي الوصفات</a>
             </div>
           </div>
-        </div>
 
-        <div class="hero-visual">
-          <div class="floating-card card-one">
-            <img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80"
-              alt="وجبة لذيذة">
+          <div class="hero-visual">
+            <div class="hero-3d-stage">
+                <!-- Main 3D Dish -->
+                <img src="assets/img/dish_3d.png" alt="Premium 3D Dish" class="main-3d-dish">
+                
+                <!-- Floating Glass Info Elements -->
+                <div class="glass-element ge-1">
+                    <span class="ge-icon">⭐</span>
+                    <span class="ge-text">وصفات حصرية</span>
+                </div>
+                <div class="glass-element ge-2">
+                    <span class="ge-icon">🍳</span>
+                    <span class="ge-text">طبخ سهل</span>
+                </div>
+            </div>
           </div>
-          <div class="floating-card card-two">
-            <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=80"
-              alt="مكونات طازجة">
-          </div>
-          <div class="glass-chip chip-1" data-i18n="hero.chip1">🥚 بيض</div>
-          <div class="glass-chip chip-2" data-i18n="hero.chip2">🍅 طماطم</div>
-          <div class="glass-chip chip-3" data-i18n="hero.chip3">🧀 جبنة</div>
         </div>
       </section>
 
+      <!-- Featured Favorites -->
       <section class="section">
         <div class="section-head">
-          <span data-i18n="index.how.badge">كيف يعمل؟</span>
-          <h3 data-i18n="index.how.h3">3 خطوات فقط وتوصلي لوصفتك</h3>
+          <span data-i18n="home.featured.badge">اختياراتكِ</span>
+          <h3 data-i18n="home.featured.title">وصفات مميزة</h3>
         </div>
-
-        <div class="steps-grid">
-          <a href="fridge.html" class="info-card">
-            <div class="icon-wrap">🧊</div>
-            <h4 data-i18n="index.step1.h4">افتحي التلاجة</h4>
-            <p data-i18n="index.step1.p">اختاري المكونات الموجودة عندك من واجهة لطيفة وواضحة.</p>
-          </a>
-
-          <a href="recipes.html" class="info-card">
-            <div class="icon-wrap">✨</div>
-            <h4 data-i18n="index.step2.h4">احصلي على اقتراح</h4>
-            <p data-i18n="index.step2.p">الموقع يرشح لك وصفات مناسبة للمكونات المتاحة.</p>
-          </a>
-
-          <a href="recipes.html" class="info-card">
-            <div class="icon-wrap">👩‍🍳</div>
-            <h4 data-i18n="index.step3.h4">ابدئي الطبخ</h4>
-            <p data-i18n="index.step3.p">شاهدي صورة الوصفة والخطوات بطريقة منظمة وسهلة.</p>
-          </a>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-head">
-          <span data-i18n="index.feat.badge">وصفات مميزة</span>
-          <h3 data-i18n="index.feat.h3">اختيارات جميلة وسريعة</h3>
-        </div>
-
-        <div class="recipe-preview-grid">
-          <a class="recipe-preview-card" href="details.html?id=1">
-            <img src="https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=900&q=80"
-              alt="عجة">
-            <div class="recipe-preview-content">
-              <h4 data-i18n="index.recipe1.h4">عجة الجبنة والطماطم</h4>
-              <p data-i18n="index.recipe1.p">وجبة سريعة، مشبعة، ومثالية للفطار أو العشاء.</p>
-            </div>
-          </a>
-
-          <a class="recipe-preview-card" href="details.html?id=2">
-            <img src="https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=900&q=80"
-              alt="مكرونة">
-            <div class="recipe-preview-content">
-              <h4 data-i18n="index.recipe2.h4">مكرونة بالخضار</h4>
-              <p data-i18n="index.recipe2.p">ألوان مبهجة وطعم خفيف وسهل التحضير جداً.</p>
-            </div>
-          </a>
-
-          <a class="recipe-preview-card" href="details.html?id=3">
-            <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80"
-              alt="سلطة">
-            <div class="recipe-preview-content">
-              <h4 data-i18n="index.recipe3.h4">سلطة منعشة</h4>
-              <p data-i18n="index.recipe3.p">خيار مثالي لو عايزة حاجة سريعة وفريش.</p>
-            </div>
-          </a>
+        <div class="recipes-grid" id="featuredRecipesGrid">
+          <!-- JS: renderFeaturedRecipes() -->
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <div class="footer-top">
-        <div class="footer-container">
-          <div class="footer-grid">
-            <div class="footer-col brand-col">
-              <a class="footer-logo" href="home.html">
-                Bite<span>Sight</span>
-              </a>
-              <p class="brand-text" data-i18n="footer.desc">اكتشفي عالم الطبخ الذكي مع BiteSight. نساعدكِ على تحويل المكونات البسيطة إلى وجبات استثنائية بلمسة واحدة.</p>
-              <div class="social-links">
-                <a href="#" class="social-item" title="Facebook">FB</a>
-                <a href="#" class="social-item" title="Instagram">IG</a>
-                <a href="#" class="social-item" title="Twitter">TW</a>
-              </div>
+      <div class="footer-container">
+        <div class="footer-grid">
+          <div class="footer-col brand-col">
+            <a class="footer-logo" href="home.html">🍽️ Bite<span>Sight</span></a>
+            <p class="brand-text" data-i18n="footer.desc">اكتشفي عالم الطبخ الذكي مع BiteSight. نساعدكِ على تحويل المكونات البسيطة إلى وجبات استثنائية بلمسة واحدة.</p>
+            <div class="social-links">
+              <a href="#" class="social-item">FB</a>
+              <a href="#" class="social-item">IG</a>
+              <a href="#" class="social-item">TW</a>
             </div>
+          </div>
 
-            <div class="footer-col">
-              <h4 data-i18n="footer.explore">استكشفي</h4>
-              <ul class="footer-nav">
-                <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
-                <li><a href="fridge.html" data-i18n="nav.fridge">الثلاجة</a></li>
-                <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
-                <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
-              </ul>
-            </div>
+          <div class="footer-col">
+            <h4 data-i18n="footer.explore">استكشفي</h4>
+            <ul class="footer-nav">
+              <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+              <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+              <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            </ul>
+          </div>
 
-            <div class="footer-col">
-              <h4 data-i18n="footer.important_links">روابط هامة</h4>
-              <ul class="footer-nav">
-                <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
-                <li><a href="contact.html" data-i18n="nav.contact">تواصل معنا</a></li>
-                <li><a href="profile.html" data-i18n="nav.profile">حسابي</a></li>
-              </ul>
-            </div>
+          <div class="footer-col">
+            <h4 data-i18n="footer.important_links">روابط هامة</h4>
+            <ul class="footer-nav">
+              <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+              <li><a href="contact.html" data-i18n="nav.contact">تواصل معنا</a></li>
+              <li><a href="faq.html" data-i18n="nav.faq">الأسئلة الشائعة</a></li>
+            </ul>
+          </div>
 
-            <div class="footer-col contact-col">
-              <h4 data-i18n="footer.direct_contact">تواصل مباشر</h4>
-              <p data-i18n="footer.contact_desc">لديكِ استفسار؟ نحن هنا للمساعدة</p>
-              <a href="mailto:info@bitesight.com" class="footer-email">info@bitesight.com</a>
-            </div>
+          <div class="footer-col">
+            <h4 data-i18n="footer.direct_contact">تواصل مباشر</h4>
+            <ul class="contact-info-list">
+               <li><span class="contact-icon">📧</span> info@bitesight.com</li>
+               <li><span class="contact-icon">📱</span> +20 123 456 789</li>
+               <li><span class="contact-icon">📍</span> القاهرة، مصر</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p class="copyright" data-i18n="footer.rights">جميع الحقوق محفوظة &copy; 2026 BiteSight</p>
+          <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
           </div>
         </div>
       </div>
     </footer>
   </div>
 
-  <script src="script.js?v=p6"></script>
+  <script src="script.js?v=v34"></script>
 </body>
 
 </html>

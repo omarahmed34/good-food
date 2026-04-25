@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head><meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | طلباتي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v31" />
+  <script>
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  </script>
+  <style>
+    .orders-container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .order-item {
+      background: var(--card-bg, rgba(255, 255, 255, 0.8));
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .order-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .order-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    .order-details {
+      flex-grow: 1;
+    }
+
+    .order-details h4 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: var(--text-color);
+    }
+
+    .order-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .status-pill {
+      padding: 6px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    .status-pending { background: #f39c12; }
+    .status-confirmed { background: #3498db; }
+    .status-delivered { background: #2ecc71; }
+    .status-cancelled { background: #e74c3c; }
+
+    .empty-orders {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-orders h2 {
+      margin-bottom: 20px;
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
+
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
+          </div>
+          <button id="themeToggle" title="تبديل الوضع">☀️</button>
+          <button id="langToggle" title="Switch Language">
+            <span class="lang-icon">🌐</span>
+            <span class="lang-label">EN</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="orders-container">
+        <div class="section-head">
+          <span style="background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;" data-i18n="orders.subtitle">سجل الطلبات</span>
+          <h3 style="margin-top: 10px; font-size: 2rem;" data-i18n="orders.h3">طلباتي السابقة</h3>
+        </div>
+
+        <div id="ordersList">
+          <!-- JS -->
+          <p style="text-align: center;" data-i18n="orders.loading">جاري تحميل طلباتك...</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div class="footer-container">
+          <div class="footer-grid" style="grid-template-columns: 1fr;">
+            <div class="footer-col brand-col" style="text-align: center;">
+              <a class="footer-logo" href="home.html">
+                Bite<span>Sight</span>
+              </a>
+              <p class="brand-text" data-i18n="footer.rights">جميع الحقوق محفوظة &copy; 2026</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js?v=v11_fixed"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const userLang = getCurrentLang();
+      const listContainer = document.getElementById('ordersList');
+      
+      try {
+        const response = await fetch(`api.php?action=get_user_orders&user_id=${user.id}`);
+        const orders = await response.json();
+
+        if (orders.length === 0) {
+          const t = translations[userLang];
+          listContainer.innerHTML = `
+            <div class="empty-orders">
+              <h2>${t['orders.no_orders']}</h2>
+              <a href="recipes.html" class="btn btn-primary">${t['orders.browse']}</a>
+            </div>
+          `;
+          return;
+        }
+
+        const t = translations[userLang];
+        listContainer.innerHTML = orders.map(order => `
+          <div class="order-item">
+            <img src="${order.recipe_image}" alt="${order.recipe_name}" class="order-img">
+            <div class="order-details">
+              <h4>${order.recipe_name}</h4>
+              <div class="order-meta">
+                <span>📅 ${t['orders.delivery']}: ${order.delivery_date || 'N/A'}</span>
+                <span>⏰ ${t['orders.at_time']}: ${order.delivery_time || 'N/A'}</span>
+              </div>
+              <div class="order-meta" style="margin-top: -5px;">
+                <span>📦 ${t['orders.order_id']}: #${order.id}</span>
+                <span>📅 ${t['orders.order_date']}: ${new Date(order.order_date).toLocaleDateString(userLang === 'ar' ? 'ar-EG' : 'en-US')}</span>
+              </div>
+              <p style="font-size: 0.9rem; color: #777; margin-bottom: 5px;">📍 ${t['orders.address']}: ${order.address}</p>
+              ${order.location_link ? `<a href="${order.location_link}" target="_blank" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">🗺️ ${t['orders.map']}</a>` : ''}
+            </div>
+            <div class="status-pill status-${order.status}">
+              ${getStatusText(order.status, userLang)}
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        listContainer.innerHTML = '<p style="text-align: center; color: red;">فشل في تحميل الطلبات. برجاء المحاولة لاحقاً.</p>';
+      }
+    });
+
+    function getStatusText(status, lang) {
+      const t = translations[lang];
+      const texts = {
+        'pending': t['orders.pending'],
+        'confirmed': t['orders.confirmed'],
+        'delivered': t['orders.delivered'],
+        'cancelled': t['orders.cancelled']
+      };
+      return texts[status] || status;
+    }
+  </script>
+</body>
+
+</html>

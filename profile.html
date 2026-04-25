@@ -7,133 +7,180 @@
   <title>BiteSight | الملف الشخصي</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=p6" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v34" />
+  <script>
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  </script>
 </head>
 
 <body>
   <div class="page-shell">
-    <header class="topbar">
-      <a class="logo" href="home.html">
-        <span class="logo-badge">🍽️</span>
-        <div>
-          <h1>BiteSight</h1>
-          <p data-i18n="index.subtitle">افتحي التلاجة... وسيبي الباقي علينا</p>
-        </div>
-      </a>
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
 
-      <nav class="nav">
-        <a href="home.html" data-i18n="nav.home">الرئيسية</a>
-        <a href="fridge.html" data-i18n="nav.fridge">التلاجة</a>
-        <a href="recipes.html" data-i18n="nav.recipes">الوصفات</a>
-        <a href="favorites.html" data-i18n="nav.favorites">المفضلة</a>
-        <a href="about.html" data-i18n="nav.about">عنّا</a>
-        <a href="contact.html" data-i18n="nav.contact">تواصل</a>
-      </nav>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
 
-      <div class="nav-hub">
-        <div class="user-profile active" id="userProfile" title="الملف الشخصي"
-          onclick="window.location.href='profile.html'">
-          <div class="user-avatar-small" id="userAvatar">U</div>
-          <div class="user-info-brief">
-            <span class="user-name-label" id="userName">المستخدم</span>
-            <span class="logout-action" onclick="event.stopPropagation(); handleLogout()"
-              data-i18n="nav.logout">خروج</span>
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
           </div>
+          <button id="themeToggle" title="تبديل الوضع">☀️</button>
+          <button id="langToggle" title="Switch Language">
+            <span class="lang-icon">🌐</span>
+            <span class="lang-label">EN</span>
+          </button>
         </div>
-        <button id="themeToggle" title="تبديل المظهر">☀️</button>
-        <button id="langToggle" title="Switch Language">
-          <span class="lang-icon">🌐</span>
-          <span class="lang-label">EN</span>
-        </button>
       </div>
     </header>
 
     <main class="section">
-      <div class="section-head">
-        <span data-i18n="profile.badge">المعلومات الشخصية</span>
-        <h3 data-i18n="profile.h3">أهلاً بك في حسابك الخاص</h3>
-      </div>
-
-      <div class="profile-container">
-        <div class="profile-card">
-          <div class="profile-header">
+      <div class="profile-premium-container">
+        <!-- Sidebar Tabs -->
+        <aside class="profile-sidebar">
+          <div class="profile-header-mini">
             <div class="user-avatar-large" id="profileAvatar">U</div>
             <h2 id="profileName">اسم المستخدم</h2>
+            <p id="profileEmail">email@example.com</p>
           </div>
+          
+          <nav class="profile-tabs">
+            <button class="tab-btn active" onclick="switchProfileTab('personal')">
+              <span class="tab-icon">👤</span> <span data-i18n="profile.tabs.personal">البيانات الشخصية</span>
+            </button>
+            <button class="tab-btn" onclick="switchProfileTab('stats')">
+              <span class="tab-icon">📊</span> <span data-i18n="profile.tabs.stats">إحصائياتي</span>
+            </button>
+            <button class="tab-btn" onclick="switchProfileTab('orders')">
+              <span class="tab-icon">📦</span> <span data-i18n="profile.tabs.orders">طلباتي</span>
+            </button>
+            <button class="tab-btn" onclick="switchProfileTab('security')">
+              <span class="tab-icon">🔒</span> <span data-i18n="profile.tabs.security">تغيير كلمة المرور</span>
+            </button>
+            <button class="tab-btn logout-tab" onclick="handleLogout()">
+              <span class="tab-icon">🚪</span> <span data-i18n="nav.logout">خروج</span>
+            </button>
+          </nav>
+        </aside>
 
-          <div class="profile-details">
-            <div class="detail-item">
-              <label data-i18n="profile.label.name">الاسم الكامل</label>
-              <div class="input-wrapper">
-                <input type="text" id="editFullName" placeholder="الاسم الكامل">
+        <!-- Content Area -->
+        <section class="profile-content-area">
+          <!-- Personal Data Tab -->
+          <div id="tab-personal" class="tab-content active">
+            <div class="content-header">
+                <h3 data-i18n="profile.tabs.personal">البيانات الشخصية</h3>
+            </div>
+            <div class="profile-form-grid">
+              <div class="form-group-premium">
+                <label data-i18n="profile.label.name">الاسم الكامل</label>
+                <input type="text" id="editFullName" class="premium-input" placeholder="أدخل اسمك">
+              </div>
+              <div class="form-group-premium">
+                <label data-i18n="profile.label.email">البريد الإلكتروني</label>
+                <input type="email" id="editEmail" class="premium-input" placeholder="email@example.com">
               </div>
             </div>
-            <div class="detail-item">
-              <label data-i18n="profile.label.email">البريد الإلكتروني</label>
-              <div class="input-wrapper">
-                <input type="email" id="editEmail" placeholder="البريد الإلكتروني">
+            <button class="btn btn-primary profile-save-btn" onclick="saveProfileChanges()" data-i18n="profile.btn.save">حفظ التعديلات</button>
+          </div>
+
+          <!-- Stats Tab -->
+          <div id="tab-stats" class="tab-content">
+             <div class="content-header">
+                <h3 data-i18n="profile.tabs.stats">إحصائياتي</h3>
+            </div>
+            <div class="stats-premium-grid">
+              <div class="stat-card-premium">
+                <div class="stat-icon">❤️</div>
+                <div class="stat-info">
+                  <h4 id="statFavCount">0</h4>
+                  <p data-i18n="nav.favorites">المفضلة</p>
+                </div>
+              </div>
+              <div class="stat-card-premium">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-info">
+                  <h4 id="statShopCount">0</h4>
+                  <p data-i18n="nav.shopping_list">قائمة التسوق</p>
+                </div>
+              </div>
+              <div class="stat-card-premium">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                  <h4 id="statPlanCount">0</h4>
+                  <p>خطة الوجبات</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="profile-actions">
-            <button class="btn btn-primary full-btn" onclick="saveProfileChanges()" data-i18n="profile.btn.save">حفظ التغييرات</button>
-            <button class="btn btn-secondary full-btn" onclick="handleLogout()" data-i18n="profile.btn.logout">تسجيل الخروج</button>
+          <!-- Orders Tab -->
+          <div id="tab-orders" class="tab-content">
+             <div class="content-header">
+                <h3 data-i18n="profile.tabs.orders">طلباتي</h3>
+            </div>
+            <div id="ordersList" class="orders-premium-list">
+              <!-- JS: renderProfileOrders() -->
+            </div>
           </div>
-        </div>
+
+          <!-- Security Tab -->
+          <div id="tab-security" class="tab-content">
+             <div class="content-header">
+                <h3 data-i18n="profile.tabs.security">تغيير كلمة المرور</h3>
+            </div>
+            <div class="profile-form-grid">
+              <div class="form-group-premium password-field">
+                <label data-i18n="profile.label.old_pass">كلمة المرور الحالية</label>
+                <div class="input-wrapper">
+                  <input type="password" id="oldPassword" class="premium-input" placeholder="••••••••" autocomplete="current-password">
+                  <button type="button" class="eye-toggle" onclick="togglePassword('oldPassword', this)">👁️</button>
+                </div>
+              </div>
+              <div class="form-group-premium password-field">
+                <label data-i18n="profile.label.new_pass">كلمة المرور الجديدة</label>
+                <div class="input-wrapper">
+                  <input type="password" id="newPassword" class="premium-input" placeholder="••••••••" autocomplete="new-password">
+                  <button type="button" class="eye-toggle" onclick="togglePassword('newPassword', this)">👁️</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary profile-save-btn" onclick="savePasswordChanges()" data-i18n="profile.btn.save">تحديث كلمة المرور</button>
+          </div>
+        </section>
       </div>
     </main>
 
     <footer class="site-footer">
-      <div class="footer-top">
-        <div class="footer-container">
-          <div class="footer-grid">
-            <div class="footer-col brand-col">
-              <a class="footer-logo" href="home.html">
-                Bite<span>Sight</span>
-              </a>
-              <p class="brand-text">اكتشفي عالم الطبخ الذكي مع BiteSight. نساعدكِ على تحويل المكونات البسيطة إلى وجبات استثنائية بلمسة واحدة.</p>
-              <div class="social-links">
-                <a href="#" class="social-item" title="Facebook">FB</a>
-                <a href="#" class="social-item" title="Instagram">IG</a>
-                <a href="#" class="social-item" title="Twitter">TW</a>
-              </div>
-            </div>
-
-            <div class="footer-col">
-              <h4 data-i18n="footer.explore">استكشفي</h4>
-              <ul class="footer-nav">
-                <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
-                <li><a href="fridge.html" data-i18n="nav.fridge">الثلاجة</a></li>
-                <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
-                <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-col">
-              <h4 data-i18n="footer.important_links">روابط هامة</h4>
-              <ul class="footer-nav">
-                <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
-                <li><a href="contact.html" data-i18n="nav.contact">تواصل معنا</a></li>
-                <li><a href="profile.html" data-i18n="nav.profile">حسابي</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-col contact-col">
-              <h4 data-i18n="footer.direct_contact">تواصل مباشر</h4>
-              <p data-i18n="footer.contact_desc">لديكِ استفسار؟ نحن هنا للمساعدة</p>
-              <a href="mailto:info@bitesight.com" class="footer-email">info@bitesight.com</a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Standard Footer (Simplified for space) -->
     </footer>
   </div>
 
-  <script src="script.js?v=p6"></script>
+  <script src="script.js?v=v34"></script>
+  <script>
+    function switchProfileTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
 </body>
 
 </html>

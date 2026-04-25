@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | طلب وجبة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v35" />
+  <script>
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  </script>
+  <style>
+    .order-premium-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 30px;
+      padding: 3rem;
+      max-width: 900px;
+      margin: 2rem auto 5rem;
+      box-shadow: var(--shadow-xl);
+    }
+
+    [data-theme="light"] .order-premium-card {
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .order-recipe-summary {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 1.5rem;
+      background: rgba(255, 90, 0, 0.05);
+      border-radius: 20px;
+      margin-bottom: 3rem;
+      border: 1px solid rgba(255, 90, 0, 0.1);
+    }
+
+    .order-recipe-summary img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 15px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .order-grid-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .order-full-width {
+      grid-column: span 2;
+    }
+
+    .order-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .order-form-group label {
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+
+    .order-form-group input, 
+    .order-form-group textarea {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    .order-form-group input:focus,
+    .order-form-group textarea:focus {
+      border-color: var(--primary);
+      background: rgba(255, 90, 0, 0.03);
+      outline: none;
+    }
+
+    .location-wrapper {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .location-wrapper input {
+      flex: 1;
+    }
+
+    .success-premium {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .success-icon-wrap {
+      width: 100px;
+      height: 100px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+      font-size: 3rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      animation: bounceIn 0.8s var(--bounce);
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0); }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    @media (max-width: 768px) {
+      .order-grid-form { grid-template-columns: 1fr; }
+      .order-full-width { grid-column: span 1; }
+      .order-premium-card { padding: 1.5rem; }
+      .order-recipe-summary { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
+
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
+          </div>
+          <button id="themeToggle" title="تبديل الوضع">☀️</button>
+          <button id="langToggle" title="Switch Language">
+            <span class="lang-icon">🌐</span>
+            <span class="lang-label">EN</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="cinematic-container">
+        <div class="cinematic-orb"></div>
+        <div class="cinematic-header">
+          <span class="sub-line">تأكيد الطلب</span>
+          <h2 class="main-line highlight">استمتعي بوجبتك المفضلة</h2>
+        </div>
+      </div>
+
+      <div class="order-container">
+        <div class="order-premium-card" id="orderCard">
+          <div class="order-recipe-summary" id="recipeSummary">
+            <p>جاري تحميل بيانات الوجبة...</p>
+          </div>
+
+          <form class="order-grid-form" id="orderForm">
+            <div class="order-form-group">
+              <label for="fullName">الاسم بالكامل</label>
+              <input type="text" id="fullName" name="fullName" required placeholder="مثال: سارة محمد">
+            </div>
+            <div class="order-form-group">
+              <label for="phone">رقم الهاتف</label>
+              <input type="tel" id="phone" name="phone" required placeholder="01xxxxxxxxx">
+            </div>
+            <div class="order-form-group">
+              <label for="deliveryDate">تاريخ الاستلام</label>
+              <input type="date" id="deliveryDate" name="deliveryDate" required>
+            </div>
+            <div class="order-form-group">
+              <label for="deliveryTime">موعد الاستلام</label>
+              <input type="time" id="deliveryTime" name="deliveryTime" required>
+            </div>
+            
+            <div class="order-form-group order-full-width">
+              <label>الموقع الجغرافي (اختياري)</label>
+              <div class="location-wrapper">
+                <input type="text" id="locationLink" name="locationLink" placeholder="رابط جوجل ماب أو اكتبي وصف الموقع هنا">
+                <button type="button" onclick="getLocation()" class="btn btn-secondary" style="white-space: nowrap;">📍 تحديد آلي</button>
+              </div>
+            </div>
+
+            <div class="order-form-group order-full-width">
+              <label for="address">العنوان بالتفصيل</label>
+              <textarea id="address" name="address" rows="3" required placeholder="اسم الشارع، رقم العمارة، الشقة، وأي علامة مميزة"></textarea>
+            </div>
+
+            <div class="order-full-width" style="margin-top: 2rem;">
+              <button type="submit" class="btn btn-primary full-btn" style="font-size: 1.2rem; padding: 1.2rem;">تأكيد وطلب الآن</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="order-premium-card success-premium" id="successMsg" style="display: none;">
+          <div class="success-icon-wrap">✓</div>
+          <h3 class="highlight-text" style="font-size: 2rem; margin-bottom: 1rem;">تم استلام طلبك بنجاح!</h3>
+          <p class="subtle">شكراً لثقتك بنا. سيقوم فريقنا بالتواصل معك قريباً لتأكيد الموعد.</p>
+          
+          <div style="margin: 2.5rem 0; padding: 2rem; background: rgba(255, 90, 0, 0.05); border-radius: 20px; border: 1px dashed var(--primary);">
+            <p style="font-size: 1.1rem; color: var(--text-main);">رقم الطلب الخاص بك هو:</p>
+            <span class="highlight-text" id="orderNumDisplay" style="font-size: 2.5rem; display: block; margin-top: 0.5rem;">#12345</span>
+          </div>
+
+          <div style="display: flex; gap: 1.5rem; justify-content: center;">
+            <a href="profile.html" class="btn btn-primary">تتبع طلباتي</a>
+            <a href="home.html" class="btn btn-secondary">العودة للرئيسية</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-grid">
+          <div class="footer-col brand-col">
+            <a class="footer-logo" href="home.html">🍽️ Bite<span>Sight</span></a>
+            <p class="brand-text" data-i18n="footer.desc">اكتشفي عالم الطبخ الذكي مع BiteSight. نساعدكِ على تحويل المكونات البسيطة إلى وجبات استثنائية بلمسة واحدة.</p>
+            <div class="social-links">
+              <a href="#" class="social-item">FB</a>
+              <a href="#" class="social-item">IG</a>
+              <a href="#" class="social-item">TW</a>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4 data-i18n="footer.explore">استكشفي</h4>
+            <ul class="footer-nav">
+              <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+              <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+              <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4 data-i18n="footer.important_links">روابط هامة</h4>
+            <ul class="footer-nav">
+              <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+              <li><a href="contact.html" data-i18n="nav.contact">تواصل معنا</a></li>
+              <li><a href="faq.html" data-i18n="nav.faq">الأسئلة الشائعة</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4 data-i18n="footer.direct_contact">تواصل مباشر</h4>
+            <ul class="contact-info-list">
+               <li><span class="contact-icon">📧</span> info@bitesight.com</li>
+               <li><span class="contact-icon">📱</span> +20 123 456 789</li>
+               <li><span class="contact-icon">📍</span> القاهرة، مصر</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p class="copyright" data-i18n="footer.rights">جميع الحقوق محفوظة &copy; 2026 BiteSight</p>
+          <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js?v=v35"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const recipeId = urlParams.get('id');
+      
+      if (!recipeId) {
+        window.location.href = 'recipes.html';
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        document.getElementById('fullName').value = user.name || '';
+      }
+
+      // Fetch recipe details
+      try {
+        const response = await fetch('api.php?action=get_recipes');
+        const recipes = await response.json();
+        const recipe = recipes.find(r => r.id == recipeId);
+        
+        if (recipe) {
+          document.getElementById('recipeSummary').innerHTML = `
+            <img src="${recipe.image || 'assets/img/dish_placeholder.png'}" alt="${recipe.name}">
+            <div>
+              <h4 style="font-size: 1.5rem; color: var(--primary);">${recipe.name}</h4>
+              <p style="color: var(--text-muted); margin-top: 0.5rem;">⏱ ${recipe.time} | 👩‍🍳 ${recipe.difficulty}</p>
+            </div>
+          `;
+        }
+      } catch (err) { }
+
+      // Handle Submit
+      const orderForm = document.getElementById('orderForm');
+      orderForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!user) {
+          showNotification('برجاء تسجيل الدخول أولاً', 'error');
+          return;
+        }
+
+        const formData = {
+          user_id: user.id,
+          recipe_id: recipeId,
+          full_name: document.getElementById('fullName').value,
+          email: user.email,
+          phone: document.getElementById('phone').value,
+          address: document.getElementById('address').value,
+          delivery_date: document.getElementById('deliveryDate').value,
+          delivery_time: document.getElementById('deliveryTime').value,
+          location_link: document.getElementById('locationLink').value
+        };
+
+        try {
+          const res = await fetch('api.php?action=place_order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          const result = await res.json();
+          if (result.success) {
+            document.getElementById('orderCard').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('orderNumDisplay').textContent = '#' + result.order_id;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        } catch (err) { }
+      });
+    });
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const link = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
+          document.getElementById('locationLink').value = link;
+          showNotification('تم تحديد موقعك بنجاح ✅', 'success');
+        }, () => {
+          showNotification('تعذر تحديد الموقع آلياً، يمكنك كتابته يدوياً.', 'error');
+        });
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head><meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteSight | الرئيسية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@400;600;700&family=Alexandria:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=v11_fixed" />
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="header-container">
+        <a class="brand" href="home.html">
+          <div class="brand-logo">🍽️</div>
+          <h1 class="brand-name">Bite<span>Sight</span></h1>
+        </a>
+
+        <nav class="main-nav">
+          <ul>
+            <li><a href="home.html" data-i18n="nav.home">الرئيسية</a></li>
+            <li><a href="fridge.html" data-i18n="nav.fridge">المطبخ الذكي</a></li>
+            <li><a href="recipes.html" data-i18n="nav.recipes">الوصفات</a></li>
+            <li><a href="favorites.html" data-i18n="nav.favorites">المفضلة</a></li>
+            <li><a href="about.html" data-i18n="nav.about">عن المشروع</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">أهلاً بكِ</span>
+            <button class="logout-btn" onclick="handleLogout()" title="خروج">🚪</button>
+          </div>
+        </div>
+        <button id="themeToggle" title="تبديل الوضع">☀️</button>
+        <button id="langToggle" title="Switch Language">
+          <span class="lang-icon">🌐</span>
+          <span class="lang-label">EN</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="section-head text-center">
+        <span>البحث المباشر</span>
+        <h3>بحث عن وصفة معينة</h3>
+        <p>اكتبي اسم الوصفة وسنقوم بالبحث في وصفاتنا اللذيذة</p>
+      </div>
+
+      <div class="search-container" style="max-width: 600px; margin: 0 auto 40px;">
+        <div class="input-wrapper">
+          <input type="text" id="recipeSearch" placeholder="ابحثي عن دجاج، بيتزا، إلخ..." 
+            style="width: 100%; border-radius: var(--radius-xl); padding-left: 20px; padding-right: 20px;">
+        </div>
+      </div>
+      
+      <div class="filter-chips" id="categoryFilters">
+        <button class="filter-chip active" data-cat="">الكل</button>
+        <button class="filter-chip" data-cat="فطور">فطور</button>
+        <button class="filter-chip" data-cat="غداء">غداء</button>
+        <button class="filter-chip" data-cat="عشاء">عشاء</button>
+        <button class="filter-chip" data-cat="صحي">صحي</button>
+      </div>
+
+      <div class="grid" id="searchResultsGrid">
+        <!-- Search results will appear here -->
+      </div>
+    </main>
+
+  </div>
+
+  <script src="script.js?v=v11_fixed"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("recipeSearch");
+      const grid = document.getElementById("searchResultsGrid");
+      const filterBtns = document.querySelectorAll(".filter-chip");
+      let activeCategory = "";
+
+      function renderSearchResults(query, category) {
+        if (!recipes || !recipes.length) return;
+        
+        const q = query.toLowerCase().trim();
+        let results = recipes;
+
+        if (category) {
+          results = results.filter(r => r.category && r.category.includes(category));
+        }
+
+        if (q) {
+          results = results.filter(r => r.title.toLowerCase().includes(q) || (r.description && r.description.toLowerCase().includes(q)));
+        }
+        
+        if (results.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-visual">🔍</div>
+              <h3>لا توجد نتائج مطابقة</h3>
+              <p>جربي استخدام كلمات أو تصنيفات أخرى للبحث.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const favoriteIds = getFavorites();
+        grid.innerHTML = results.map(recipe => {
+          const isFav = favoriteIds.includes(recipe.id);
+          return `
+          <article class="recipe-card">
+            <img src="${recipe.image}" alt="${recipe.title}">
+            <div class="recipe-card-content">
+              <h4>${recipe.title}</h4>
+              <p>${recipe.description}</p>
+              <div class="meta">
+                <span><i>⏱</i> ${recipe.time}</span>
+                <span><i>👩‍🍳</i> ${recipe.level}</span>
+                <span><i>🍽</i> ${recipe.serves}</span>
+              </div>
+              <div class="card-actions">
+                <button class="small-btn save-btn ${isFav ? 'active' : ''}" 
+                        onclick="saveFavorite('${recipe.id}')" 
+                        ${isFav ? 'disabled' : ''}>
+                  <i>${isFav ? '🌟' : '🤍'}</i>
+                  <span>${isFav ? 'تم الحفظ' : 'حفظ'}</span>
+                </button>
+                <button class="small-btn view-btn" onclick="goToDetails('${recipe.id}')">
+                   <i>🔍</i>
+                   <span>التفاصيل</span>
+                </button>
+                <button class="small-btn order-btn" onclick="goToOrder('${recipe.id}')">
+                   <i>🛒</i>
+                   <span>اطلبي الآن</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        `}).join("");
+      }
+
+      setTimeout(() => {
+        renderSearchResults("", "");
+      }, 500);
+
+      searchInput.addEventListener("input", (e) => {
+        renderSearchResults(e.target.value, activeCategory);
+      });
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          filterBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeCategory = btn.getAttribute("data-cat");
+          renderSearchResults(searchInput.value, activeCategory);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
